@@ -43,7 +43,7 @@ from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from socketserver import ThreadingMixIn
-from typing import Optional
+from typing import Dict, List, Optional
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Config
@@ -63,7 +63,7 @@ QUEUE_FILE = Path("/tmp/fp_chat_queue.json")
 
 _id_counter = 0
 _id_lock = threading.Lock()
-_stream_queues: dict[str, queue.Queue] = {}   # cmd_id → Queue of SSE strings
+_stream_queues: Dict[str, queue.Queue] = {}   # cmd_id → Queue of SSE strings
 _sq_lock = threading.Lock()
 
 
@@ -544,7 +544,7 @@ def _detect_venue_from_comment(comment: str) -> Optional[str]:
     return None
 
 
-def search_arxiv_recent(topic: str, days: int = 30, max_results: int = 30) -> list[dict]:
+def search_arxiv_recent(topic: str, days: int = 30, max_results: int = 30) -> List[dict]:
     """Call arXiv public API, return CS/ML papers published in the last `days` days."""
     query = _build_arxiv_query(topic, days_back=days)
     url = (
@@ -663,9 +663,9 @@ def _regenerate_html(cmd_id: str) -> bool:
         return False
 
 
-def fetch_ss_recommendations(paper_ids: list[str], limit: int = 8) -> list[dict]:
+def fetch_ss_recommendations(paper_ids: List[str], limit: int = 8) -> List[dict]:
     """Fetch recommended papers from Semantic Scholar Recommendations API."""
-    ss_ids: list[str] = []
+    ss_ids: List[str] = []
     for pid in paper_ids:
         pid = pid.strip()
         if pid.startswith("arXiv:"):
@@ -715,7 +715,7 @@ def fetch_ss_recommendations(paper_ids: list[str], limit: int = 8) -> list[dict]
     # Sort by citation count descending
     raw_papers.sort(key=lambda p: (p.get("citationCount") or 0), reverse=True)
 
-    results: list[dict] = []
+    results: List[dict] = []
     for p in raw_papers:
         title = p.get("title") or "Untitled"
         year = p.get("year") or 0
@@ -1722,7 +1722,8 @@ def main():
         print(f"   ℹ️  未检测到 LLM 渠道，问答将使用模板回复")
     print()
 
-    server = ThreadedHTTPServer(("localhost", PORT), Handler)
+    # Bind to 0.0.0.0 so Docker port publish can forward host connections into container
+    server = ThreadedHTTPServer(("0.0.0.0", PORT), Handler)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

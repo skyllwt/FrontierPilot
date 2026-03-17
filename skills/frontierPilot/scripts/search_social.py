@@ -14,9 +14,10 @@ import asyncio
 import json
 import subprocess
 import sys
+from typing import List
 
 
-def run_mcporter(query: str, num: int = 5) -> list[dict]:
+def run_mcporter(query: str, num: int = 5) -> List[dict]:
     """Call Exa via mcporter (tries local first, then docker exec)."""
     import shutil
     inner = f"mcporter call 'exa.web_search_exa(query: \"{query}\", numResults: {num})'"
@@ -50,7 +51,7 @@ def run_mcporter(query: str, num: int = 5) -> list[dict]:
         return [{"error": str(e)}]
 
 
-def search_github(topic: str) -> list[dict]:
+def search_github(topic: str) -> List[dict]:
     """Search GitHub via github-search skill."""
     script = "/home/node/.openclaw/workspace/skills/github-search/scripts/github-search.mjs"
     cmd = f'node "{script}" "{topic}" --min-stars 200 --limit 5'
@@ -77,7 +78,7 @@ def search_github(topic: str) -> list[dict]:
         return [{"error": str(e)}]
 
 
-async def search_wechat_async(topic_zh: str) -> list[dict]:
+async def search_wechat_async(topic_zh: str) -> List[dict]:
     """Search WeChat articles via miku_ai with generous timeout."""
     try:
         from miku_ai import get_wexin_article
@@ -93,7 +94,7 @@ async def search_wechat_async(topic_zh: str) -> list[dict]:
         return []
 
 
-def search_wechat(topic_zh: str) -> list[dict]:
+def search_wechat(topic_zh: str) -> List[dict]:
     """Sync wrapper with fallback to Exa if miku_ai fails."""
     try:
         results = asyncio.run(search_wechat_async(topic_zh))
@@ -110,7 +111,7 @@ def search_wechat(topic_zh: str) -> list[dict]:
     ]
 
 
-def search_xiaohongshu(topic_zh: str, num: int = 8) -> list[dict]:
+def search_xiaohongshu(topic_zh: str, num: int = 8) -> List[dict]:
     """Search Xiaohongshu posts via Exa. Returns list of {title, author_id, url, text}."""
     items = run_mcporter(f"{topic_zh} site:xiaohongshu.com", num=num)
     results = []
@@ -132,7 +133,7 @@ def search_xiaohongshu(topic_zh: str, num: int = 8) -> list[dict]:
     return results
 
 
-def search_bilibili(topic: str, topic_zh: str) -> list[dict]:
+def search_bilibili(topic: str, topic_zh: str) -> List[dict]:
     """Search Bilibili via yt-dlp bilisearch, with Exa fallback."""
     import os
     YTDLP = "/home/node/.local/bin/yt-dlp"

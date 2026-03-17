@@ -303,3 +303,34 @@
 - **Cheers** — 统一多模态，可能是一条大主线
 - **confopt** — 如果做 NAS 实验，这个工具库值得关注
 
+
+## Agent Serving System Optimization — 2026-03-17
+
+**方向**: Agent 服务系统优化
+**分类**: 系统类（核心贡献是工程实现/性能优化）
+**核心问题**: 如何高效为 LLM Agent 多轮异步有状态工作负载提供推理服务
+
+### 三条技术路线
+1. **Core LLM Serving → Agent 扩展**: vLLM(PagedAttention) → SGLang(RadixAttention) → FlashInfer(kernel)
+2. **Agent-Native Serving**: Nalar(futures/状态管理/两级控制) → SDN-inspired Serving → IsolateGPT(安全隔离)
+3. **调度与 QoS**: Niyama(细粒度QoS) → NexusSched(两层预测调度) → CascadeServe(模型级联)
+
+### 阅读优先级
+1. vLLM/PagedAttention (基础)
+2. Nalar arXiv:2601.05109 (Agent serving 最完整框架)
+3. SGLang (复杂 LLM 程序执行)
+4. FlashInfer (kernel 优化)
+
+### 关键研究者
+- Ion Stoica (UC Berkeley) — vLLM/SGLang 幕后核心
+- Saurabh Agarwal — Nalar + SDN Agentic Serving 作者
+
+### 数据源
+- Semantic Scholar: API 限流，未能拉取引用数据
+- arXiv: 成功搜索，获取 8 篇核心论文
+- GitHub: vLLM(73k), SGLang(25k), Mooncake(5k) 等
+- OpenReview: 系统类 topic 跳过
+
+### 知识库
+- HTML: output/FrontierPilot_Agent_Serving.html
+- JSON: output/fp_data_Agent_Serving.json

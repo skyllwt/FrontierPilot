@@ -1,0 +1,425 @@
+{
+  "topic": "MoE Inference System Optimization",
+  "topic_zh": "MoE推理系统优化",
+  "topic_en": "Mixture of Experts Inference System Optimization",
+  "field_overview": "MoE推理系统优化的核心问题是：如何在有限的硬件资源下，高效地部署和运行动辄百亿甚至万亿参数的稀疏激活模型？MoE模型通过「只激活一部分专家」实现了计算效率的理论优势，但实际推理时却面临三大瓶颈：巨大的内存占用（所有专家参数都需要驻留）、All-to-All通信开销（token需要在设备间路由到对应专家）、以及负载不均衡（热门专家过载，冷门专家闲置）。\n\n2023-2024年的主要共识是：纯GPU部署MoE已接近天花板，异构计算（CPU+GPU协同）和智能卸载成为主流路线。Fiddler（ICLR 2024）和KTransformers（SOSP 2025）分别从调度和系统层面证明了CPU/GPU混合推理的可行性。DeepSeek-V2通过MLA（Multi-head Latent Attention）压缩KV cache，从模型架构层面减少了推理开销，代表了「模型-系统协同设计」的趋势。\n\n当前主要争议集中在三个方面：（1）专家卸载 vs 专家复制——卸载节省内存但增加延迟，复制减少延迟但消耗更多存储；（2）动态路由 vs 静态预分配——动态路由更灵活但调度开销大；（3）通用优化还是针对特定MoE变体（如DeepSeekMoE的细粒度专家）做专用优化。\n\n新手最应优先关注两个方向：一是异构推理系统（CPU/GPU/内存层级的协同），这是当前最有工程价值的领域；二是模型-系统协同设计（如MLA、GQA等从架构层面减轻推理负担），这代表了未来的演进趋势。建议先读DeepSpeed-MoE建立全局认知，再读Fiddler和DeepSeek-V2理解两条技术路线。",
+  "foundation": [
+    {
+      "year": 2022,
+      "title": "DeepSpeed-MoE: Advancing Mixture-of-Experts Inference and Training to Power Next-Generation AI Scale",
+      "authors": [
+        "Samyam Rajbhandari",
+        "Conglong Li",
+        "Z. Yao",
+        "Minjia Zhang",
+        "Reza Yazdani Aminabadi",
+        "A. A. Awan",
+        "Jeff Rasley",
+        "Yuxiong He"
+      ],
+      "description": "DeepSpeed框架对MoE推理和训练的系统级优化，提出expert-level并行、通信优化和内存管理策略。",
+      "problem_solved": "MoE模型在大规模分布式环境下的高效推理和训练问题，通过expert parallelism和通信优化实现5x训练成本节省。",
+      "problem_left": "主要关注GPU-only部署，未充分利用CPU资源；对细粒度MoE（如DeepSeekMoE）支持有限。",
+      "url": "https://arxiv.org/abs/2201.05596",
+      "is_key": true,
+      "citation_count": 484
+    },
+    {
+      "year": 2024,
+      "title": "DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model",
+      "authors": [
+        "Zhihong Shao",
+        "Damai Dai",
+        "Daya Guo",
+        "Bo Liu",
+        "Zihan Wang",
+        "Huajian Xin"
+      ],
+      "description": "236B参数MoE模型，引入Multi-head Latent Attention (MLA) 和 DeepSeekMoE架构，实现高效推理。",
+      "problem_solved": "通过MLA压缩KV cache到latent vector，大幅减少推理时内存占用；DeepSeekMoE实现更细粒度的专家划分和共享专家隔离。",
+      "problem_left": "MLA与标准attention的兼容性问题；细粒度专家在分布式部署时All-to-All通信更频繁。",
+      "url": "https://arxiv.org/abs/2405.04434",
+      "is_key": true,
+      "citation_count": 1044
+    },
+    {
+      "year": 2024,
+      "title": "Fiddler: CPU-GPU Orchestration for Fast Inference of Mixture-of-Experts Models",
+      "authors": [
+        "Keisuke Kamahori",
+        "Yile Gu",
+        "Kan Zhu",
+        "Baris Kasikci"
+      ],
+      "description": "ICLR 2024工作，提出CPU-GPU协同调度框架，让CPU承担部分专家计算以减少GPU内存压力。",
+      "problem_solved": "在GPU内存不足时，通过将部分专家offload到CPU计算，同时优化数据传输和计算调度，实现高效MoE推理。",
+      "problem_left": "CPU计算速度仍慢于GPU，对延迟敏感场景不友好；未充分考虑异构CPU的性能差异。",
+      "url": "https://arxiv.org/abs/2402.07033",
+      "is_key": true,
+      "citation_count": 51
+    },
+    {
+      "year": 2022,
+      "title": "MoESys: A Distributed and Efficient Mixture-of-Experts Training and Inference System for Internet Services",
+      "authors": [
+        "Liang Shen",
+        "Zhihua Wu",
+        "Weibao Gong"
+      ],
+      "description": "面向互联网服务的分布式MoE训练和推理系统，关注服务级SLA和资源弹性。",
+      "problem_solved": "解决MoE模型在在线服务场景下的低延迟推理需求，通过动态资源调度和expert placement优化。",
+      "problem_left": "主要针对特定服务场景，通用性有限；对超大规模模型（>1T参数）的扩展性未验证。",
+      "url": "https://arxiv.org/abs/2205.10034",
+      "is_key": false,
+      "citation_count": 49
+    },
+    {
+      "year": 2023,
+      "title": "Towards MoE Deployment: Mitigating Inefficiencies in Mixture-of-Expert (MoE) Inference",
+      "authors": [
+        "Haiyang Huang",
+        "Newsha Ardalani",
+        "Anna Sun",
+        "Liu Ke",
+        "Hsien-Hsin S. Lee",
+        "Shruti Bhosale",
+        "Carole-Jean Wu",
+        "Benjamin Lee"
+      ],
+      "description": "Meta的工作，全面分析MoE推理的效率瓶颈：内存、通信、负载不均衡。",
+      "problem_solved": "系统性刻画MoE推理瓶颈，提出expert offloading、communication compression等优化方向。",
+      "problem_left": "更多是分析性工作，提出的优化方案的工程实现细节不够完整。",
+      "url": "https://arxiv.org/abs/2303.06182",
+      "is_key": true,
+      "citation_count": 39
+    },
+    {
+      "year": 2024,
+      "title": "Toward Efficient Inference for Mixture of Experts",
+      "authors": [
+        "Haiyang Huang",
+        "Newsha Ardalani",
+        "Anna Sun",
+        "Liu Ke",
+        "Hsien-Hsin S. Lee",
+        "Shruti Bhosale",
+        "Carole-Jean Wu",
+        "Benjamin Lee"
+      ],
+      "description": "NeurIPS 2024，扩展Towards MoE Deployment的工作，提出更完整的MoE推理优化方案。",
+      "problem_solved": "在前期分析基础上，实现了一系列MoE推理优化：expert选择性加载、通信压缩、动态batching。",
+      "problem_left": "在特定硬件配置下验证，跨平台泛化性有待验证。",
+      "url": "",
+      "is_key": true,
+      "citation_count": 30
+    },
+    {
+      "year": 2024,
+      "title": "A Survey on Inference Optimization Techniques for Mixture of Experts Models",
+      "authors": [
+        "Jiacheng Liu",
+        "Peng Tang",
+        "Wenfeng Wang",
+        "Yuhang Ren",
+        "Xiaofeng Hou",
+        "P. Heng",
+        "Minyi Guo",
+        "Chao Li"
+      ],
+      "description": "ACM Computing Surveys综述，系统梳理MoE推理优化技术栈：模型压缩、并行策略、调度优化。",
+      "problem_solved": "为研究者提供MoE推理优化的全景图，建立统一的分类体系。",
+      "problem_left": "综述类工作，不提出新方法；截止到2024年初，未能覆盖最新进展。",
+      "url": "https://arxiv.org/abs/2412.14219",
+      "is_key": true,
+      "citation_count": 31
+    },
+    {
+      "year": 2024,
+      "title": "Exploiting Inter-Layer Expert Affinity for Accelerating Mixture-of-Experts Model Inference",
+      "authors": [
+        "Jinghan Yao",
+        "Quentin G. Anthony",
+        "A. Shafi",
+        "H. Subramoni",
+        "D. Panda"
+      ],
+      "description": "IPDPS 2024，利用跨层专家亲和性减少All-to-All通信，优化分布式MoE推理。",
+      "problem_solved": "发现相邻层的expert routing pattern高度相关，通过co-located placement减少跨节点通信。",
+      "problem_left": "依赖routing pattern的稳定性，在动态路由场景下效果可能下降。",
+      "url": "https://arxiv.org/abs/2401.08383",
+      "is_key": false,
+      "citation_count": 29
+    }
+  ],
+  "frontier": [
+    {
+      "title": "KTransformers: Unleashing the Full Potential of CPU/GPU Hybrid Inference for MoE Models",
+      "venue": "SOSP 2025",
+      "year": 2025,
+      "url": "",
+      "avg_rating": null,
+      "citation_count": 10,
+      "reviews": []
+    },
+    {
+      "title": "ExpertFlow: Optimized Expert Activation and Token Allocation for Efficient Mixture-of-Experts Inference",
+      "venue": "arXiv",
+      "year": 2024,
+      "url": "https://arxiv.org/abs/2410.17954",
+      "avg_rating": null,
+      "citation_count": 22,
+      "reviews": []
+    },
+    {
+      "title": "Shortcut-connected Expert Parallelism for Accelerating Mixture-of-Experts",
+      "venue": "ICML 2024",
+      "year": 2024,
+      "url": "https://arxiv.org/abs/2404.05019",
+      "avg_rating": null,
+      "citation_count": 25,
+      "reviews": []
+    },
+    {
+      "title": "Multi-Head Mixture-of-Experts",
+      "venue": "NeurIPS 2024",
+      "year": 2024,
+      "url": "https://arxiv.org/abs/2404.15045",
+      "avg_rating": null,
+      "citation_count": 31,
+      "reviews": []
+    },
+    {
+      "title": "D2MoE: Dual Routing and Dynamic Scheduling for Efficient On-Device MoE-based LLM Serving",
+      "venue": "MobiCom 2025",
+      "year": 2025,
+      "url": "https://arxiv.org/abs/2504.15299",
+      "avg_rating": null,
+      "citation_count": 7,
+      "reviews": []
+    },
+    {
+      "title": "Semantic Parallelism: Redefining Efficient MoE Inference via Model-Data Co-Scheduling",
+      "venue": "arXiv",
+      "year": 2025,
+      "url": "https://arxiv.org/abs/2503.04398",
+      "avg_rating": null,
+      "citation_count": 6,
+      "reviews": []
+    },
+    {
+      "title": "MoE-Gen: High-Throughput MoE Inference on a Single GPU with Module-Based Batching",
+      "venue": "arXiv",
+      "year": 2025,
+      "url": "https://arxiv.org/abs/2503.09716",
+      "avg_rating": null,
+      "citation_count": 5,
+      "reviews": []
+    },
+    {
+      "title": "GRACE-MoE: Grouping and Replication with Locality-Aware Routing for Efficient Distributed MoE Inference",
+      "venue": "arXiv",
+      "year": 2025,
+      "url": "https://arxiv.org/abs/2509.25041",
+      "avg_rating": null,
+      "citation_count": 4,
+      "reviews": []
+    },
+    {
+      "title": "Optimizing Mixture-of-Experts Inference Time Combining Model Deployment and Communication Scheduling",
+      "venue": "arXiv",
+      "year": 2024,
+      "url": "https://arxiv.org/abs/2410.17043",
+      "avg_rating": null,
+      "citation_count": 9,
+      "reviews": []
+    },
+    {
+      "title": "MoE-Inference-Bench: Performance Evaluation of Mixture of Expert Large Language and Vision Models",
+      "venue": "SC25-W",
+      "year": 2025,
+      "url": "https://arxiv.org/abs/2508.17467",
+      "avg_rating": null,
+      "citation_count": 4,
+      "reviews": []
+    }
+  ],
+  "reading_list": [
+    {
+      "title": "A Survey on Inference Optimization Techniques for Mixture of Experts Models",
+      "type": "foundation",
+      "reason": "综述论文，建立全局认知的最佳起点",
+      "url": "https://arxiv.org/abs/2412.14219"
+    },
+    {
+      "title": "DeepSpeed-MoE: Advancing Mixture-of-Experts Inference and Training to Power Next-Generation AI Scale",
+      "type": "foundation",
+      "reason": "MoE系统优化的奠基工作，DeepSpeed框架的核心",
+      "url": "https://arxiv.org/abs/2201.05596"
+    },
+    {
+      "title": "DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model",
+      "type": "foundation",
+      "reason": "模型-系统协同设计的典范，MLA是关键创新",
+      "url": "https://arxiv.org/abs/2405.04434"
+    },
+    {
+      "title": "Fiddler: CPU-GPU Orchestration for Fast Inference of Mixture-of-Experts Models",
+      "type": "foundation",
+      "reason": "ICLR 2024，异构推理的代表作",
+      "url": "https://arxiv.org/abs/2402.07033"
+    },
+    {
+      "title": "Towards MoE Deployment: Mitigating Inefficiencies in MoE Inference",
+      "type": "foundation",
+      "reason": "Meta的系统分析，理解瓶颈的必读论文",
+      "url": "https://arxiv.org/abs/2303.06182"
+    },
+    {
+      "title": "Toward Efficient Inference for Mixture of Experts",
+      "type": "foundation",
+      "reason": "NeurIPS 2024，Meta在MoE推理优化上的完整方案",
+      "url": ""
+    },
+    {
+      "title": "KTransformers: CPU/GPU Hybrid Inference for MoE Models",
+      "type": "frontier",
+      "reason": "SOSP 2025，系统顶会，CPU/GPU混合推理的最新突破",
+      "url": ""
+    },
+    {
+      "title": "ExpertFlow: Optimized Expert Activation and Token Allocation",
+      "type": "frontier",
+      "reason": "动态expert激活和token分配，22引用",
+      "url": "https://arxiv.org/abs/2410.17954"
+    },
+    {
+      "title": "Shortcut-connected Expert Parallelism for Accelerating MoE",
+      "type": "frontier",
+      "reason": "ICML 2024，通过shortcut连接优化expert并行",
+      "url": "https://arxiv.org/abs/2404.05019"
+    },
+    {
+      "title": "D2MoE: Dual Routing and Dynamic Scheduling for On-Device MoE",
+      "type": "frontier",
+      "reason": "MobiCom 2025，端侧MoE推理的创新方案",
+      "url": "https://arxiv.org/abs/2504.15299"
+    },
+    {
+      "title": "GRACE-MoE: Grouping and Replication with Locality-Aware Routing",
+      "type": "frontier",
+      "reason": "通过分组和复制实现局部性感知路由",
+      "url": "https://arxiv.org/abs/2509.25041"
+    }
+  ],
+  "top_authors": [
+    {
+      "name": "Carole-Jean Wu",
+      "institution": "Meta / Arizona State University",
+      "papers_count": 2,
+      "recent_work": "Towards MoE Deployment, Toward Efficient Inference for MoE",
+      "url": ""
+    },
+    {
+      "name": "Haiyang Huang",
+      "institution": "Meta",
+      "papers_count": 2,
+      "recent_work": "Towards MoE Deployment, Toward Efficient Inference for MoE (NeurIPS 2024)",
+      "url": ""
+    },
+    {
+      "name": "Samyam Rajbhandari",
+      "institution": "Microsoft (DeepSpeed)",
+      "papers_count": 1,
+      "recent_work": "DeepSpeed-MoE",
+      "url": ""
+    },
+    {
+      "name": "Zhihong Shao",
+      "institution": "DeepSeek AI",
+      "papers_count": 1,
+      "recent_work": "DeepSeek-V2 (1044 citations)",
+      "url": ""
+    },
+    {
+      "name": "Baris Kasikci",
+      "institution": "University of Michigan",
+      "papers_count": 1,
+      "recent_work": "Fiddler (ICLR 2024)",
+      "url": ""
+    },
+    {
+      "name": "Minyi Guo",
+      "institution": "Shanghai Jiao Tong University",
+      "papers_count": 1,
+      "recent_work": "A Survey on MoE Inference Optimization (ACM Computing Surveys)",
+      "url": ""
+    }
+  ],
+  "resources": {
+    "github": [
+      {
+        "name": "microsoft/Tutel",
+        "url": "https://github.com/microsoft/Tutel",
+        "stars": 976,
+        "description": "Microsoft的自适应MoE训练和推理框架"
+      },
+      {
+        "name": "withinmiaov/A-Survey-on-Mixture-of-Experts-in-LLMs",
+        "url": "https://github.com/withinmiaov/A-Survey-on-Mixture-of-Experts-in-LLMs",
+        "stars": 484,
+        "description": "MoE in LLMs综述资源列表"
+      },
+      {
+        "name": "pprp/Awesome-Efficient-MoE",
+        "url": "https://github.com/pprp/Awesome-Efficient-MoE",
+        "stars": 168,
+        "description": "高效MoE论文和工具精选列表"
+      }
+    ],
+    "bilibili": [],
+    "wechat": []
+  },
+  "paper_clusters": [
+    {
+      "id": "cluster_system",
+      "name": "MoE 推理系统与调度",
+      "subgraph_style": "fill:#eff6ff,stroke:#2563eb",
+      "paper_node_ids": [
+        "N_DeepSpeedMoE",
+        "N_MoESys",
+        "N_Fiddler",
+        "N_KTransformers",
+        "N_ExpertFlow",
+        "N_D2MoE",
+        "N_OptimMoeInfer"
+      ]
+    },
+    {
+      "id": "cluster_arch",
+      "name": "模型-系统协同设计",
+      "subgraph_style": "fill:#f0fdf4,stroke:#059669",
+      "paper_node_ids": [
+        "N_DeepSeekV2",
+        "N_MultiHeadMoE",
+        "N_ShortcutEP",
+        "N_SemanticPar"
+      ]
+    },
+    {
+      "id": "cluster_analysis",
+      "name": "分析、综述与基准",
+      "subgraph_style": "fill:#faf5ff,stroke:#7c3aed",
+      "paper_node_ids": [
+        "N_TowardsMoE",
+        "N_EfficientInfer",
+        "N_SurveyMoE",
+        "N_ExploitAffinity",
+        "N_MoEGen",
+        "N_GRACEMoE",
+        "N_MoEBench"
+      ]
+    }
+  ],
+  "graph_mermaid": "flowchart LR\n  subgraph cluster_system[MoE 推理系统与调度]\n    N_DeepSpeedMoE[\"DeepSpeed-MoE<br/>2022 ⭐484\"]\n    N_MoESys[\"MoESys<br/>2022 ⭐49\"]\n    N_Fiddler[\"Fiddler<br/>ICLR 2024 ⭐51\"]\n    N_KTransformers[\"KTransformers<br/>SOSP 2025 ⭐10\"]\n    N_ExpertFlow[\"ExpertFlow<br/>2024 ⭐22\"]\n    N_D2MoE[\"D2MoE<br/>MobiCom 2025 ⭐7\"]\n    N_OptimMoeInfer[\"Optim MoE Infer<br/>2024 ⭐9\"]\n  end\n  subgraph cluster_arch[模型-系统协同设计]\n    N_DeepSeekV2[\"DeepSeek-V2<br/>2024 ⭐1044\"]\n    N_MultiHeadMoE[\"Multi-Head MoE<br/>NeurIPS 2024 ⭐31\"]\n    N_ShortcutEP[\"Shortcut Expert Parallel<br/>ICML 2024 ⭐25\"]\n    N_SemanticPar[\"Semantic Parallelism<br/>2025 ⭐6\"]\n  end\n  subgraph cluster_analysis[分析、综述与基准]\n    N_TowardsMoE[\"Towards MoE Deploy<br/>2023 ⭐39\"]\n    N_EfficientInfer[\"Toward Efficient Infer<br/>NeurIPS 2024 ⭐30\"]\n    N_SurveyMoE[\"Survey MoE Inference<br/>ACM 2024 ⭐31\"]\n    N_ExploitAffinity[\"Expert Affinity<br/>IPDPS 2024 ⭐29\"]\n    N_MoEGen[\"MoE-Gen<br/>2025 ⭐5\"]\n    N_GRACEMoE[\"GRACE-MoE<br/>2025 ⭐4\"]\n    N_MoEBench[\"MoE-Inference-Bench<br/>SC25-W ⭐4\"]\n  end\n  N_DeepSpeedMoE --> N_Fiddler\n  N_DeepSpeedMoE --> N_KTransformers\n  N_TowardsMoE --> N_EfficientInfer\n  N_TowardsMoE --> N_Fiddler\n  N_DeepSeekV2 --> N_MultiHeadMoE\n  N_DeepSeekV2 --> N_ShortcutEP\n  N_DeepSpeedMoE --> N_MoESys\n  N_EfficientInfer --> N_ExpertFlow\n  N_DeepSeekV2 --> N_SemanticPar\n  N_Fiddler --> N_D2MoE\n  N_ExploitAffinity --> N_GRACEMoE",
+  "latest_updates": []
+}

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FrontierPilot · MoE Inference System Optimization 知识库</title>
+<title>FrontierPilot · Agent Serving System Optimization 知识库</title>
 <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
 <style>
 :root {
@@ -469,15 +469,15 @@ html { scroll-behavior: smooth; }
 <div class="header">
   <div class="header-inner">
     <div class="logo">✦ FRONTIERPILOT · 成长型知识库</div>
-    <h1>📍 MoE Inference System Optimization 知识库</h1>
-    <div class="header-sub">MoE推理系统优化 · 由 FrontierPilot Agent 持续维护</div>
+    <h1>📍 Agent Serving System Optimization 知识库</h1>
+    <div class="header-sub">Agent 服务系统优化 · 由 FrontierPilot Agent 持续维护</div>
     <div class="badges">
-      <span class="badge">📚 8 篇奠基论文</span>
-      <span class="badge">🔬 10 篇前沿论文</span>
-      <span class="badge">📋 11 篇阅读清单</span>
+      <span class="badge">📚 4 篇奠基论文</span>
+      <span class="badge">🔬 8 篇前沿论文</span>
+      <span class="badge">📋 8 篇阅读清单</span>
       <span class="badge">🌐 多平台资源</span>
       
-      <span class="badge">⏱️ 2026-03-17 14:15</span>
+      <span class="badge">⏱️ 2026-03-17 14:27</span>
     </div>
   </div>
 </div>
@@ -573,7 +573,7 @@ html { scroll-behavior: smooth; }
   <div class="chat-panel">
     <div class="section-header">
       <span class="section-icon">🤖</span>
-      <span class="section-title">智能助手 · MoE Inference System Optimization</span>
+      <span class="section-title">智能助手 · Agent Serving System Optimization</span>
     </div>
 
     <div class="chat-server-hint">
@@ -595,10 +595,10 @@ html { scroll-behavior: smooth; }
     </div>
 
     <div class="chat-quickactions">
-      <span class="chat-chip" onclick="fillInput('更新 MoE Inference System Optimization 的最新动态')">🔄 更新最新动态</span>
+      <span class="chat-chip" onclick="fillInput('更新 Agent Serving System Optimization 的最新动态')">🔄 更新最新动态</span>
       <span class="chat-chip" onclick="fillInput('把这篇论文添加到知识图谱：')">➕ 添加论文</span>
       <span class="chat-chip" onclick="fillInput('分析 arXiv 论文：')">🔍 分析 arXiv 论文</span>
-      <span class="chat-chip" onclick="fillInput('推荐 MoE Inference System Optimization 方向的入门阅读路径')">📚 入门路径推荐</span>
+      <span class="chat-chip" onclick="fillInput('推荐 Agent Serving System Optimization 方向的入门阅读路径')">📚 入门路径推荐</span>
     </div>
 
     <div class="chat-input-row">
@@ -619,7 +619,7 @@ html { scroll-behavior: smooth; }
       <span class="section-title">领域全景 · 专家视角导读</span>
     </div>
         <div class="overview-card">
-      <div class="overview-text"><p style='margin-bottom:12px'>MoE推理系统优化的核心问题是：如何在有限的硬件资源下，高效地部署和运行动辄百亿甚至万亿参数的稀疏激活模型？MoE模型通过「只激活一部分专家」实现了计算效率的理论优势，但实际推理时却面临三大瓶颈：巨大的内存占用（所有专家参数都需要驻留）、All-to-All通信开销（token需要在设备间路由到对应专家）、以及负载不均衡（热门专家过载，冷门专家闲置）。</p><p style='margin-bottom:12px'>2023-2024年的主要共识是：纯GPU部署MoE已接近天花板，异构计算（CPU+GPU协同）和智能卸载成为主流路线。Fiddler（ICLR 2024）和KTransformers（SOSP 2025）分别从调度和系统层面证明了CPU/GPU混合推理的可行性。DeepSeek-V2通过MLA（Multi-head Latent Attention）压缩KV cache，从模型架构层面减少了推理开销，代表了「模型-系统协同设计」的趋势。</p><p style='margin-bottom:12px'>当前主要争议集中在三个方面：（1）专家卸载 vs 专家复制——卸载节省内存但增加延迟，复制减少延迟但消耗更多存储；（2）动态路由 vs 静态预分配——动态路由更灵活但调度开销大；（3）通用优化还是针对特定MoE变体（如DeepSeekMoE的细粒度专家）做专用优化。</p><p style='margin-bottom:12px'>新手最应优先关注两个方向：一是异构推理系统（CPU/GPU/内存层级的协同），这是当前最有工程价值的领域；二是模型-系统协同设计（如MLA、GQA等从架构层面减轻推理负担），这代表了未来的演进趋势。建议先读DeepSpeed-MoE建立全局认知，再读Fiddler和DeepSeek-V2理解两条技术路线。</p></div>
+      <div class="overview-text"><p style='margin-bottom:12px'>Agent Serving System Optimization 是 2024-2026 年快速崛起的系统研究方向，核心问题是：如何高效地为 LLM 驱动的智能体（Agent）工作负载提供推理服务？</p><p style='margin-bottom:12px'>传统 LLM serving 系统（如 vLLM、SGLang）假设的是「单次请求→单次生成」的交互模式，但 Agent 工作流本质是多轮、异步、有状态的——涉及 tool calling、多模型编排、动态控制流和长时运行状态。这些特征让现有 serving 系统面临三类新挑战：(1) 动态调度——Agent 的执行路径由模型输出决定，无法提前预测；(2) 状态管理——长对话 + 工具执行结果需要持久化的逻辑状态，而非仅是 KV cache；(3) 异构组件——Agent pipeline 中可能混合不同模型（planner + executor）、不同精度、甚至非 LLM 组件。</p><p style='margin-bottom:12px'>目前该领域呈现两条演进路线：一条是从传统 LLM serving 向上扩展，增加对 Agent 工作流的支持（如 Nalar 的 futures 机制、SDN-inspired serving 框架）；另一条是从 Agent 框架向下优化，嵌入 serving-aware 的资源管理。2025-2026 年的关键共识是：Agent serving 需要「工作流与执行解耦」的架构——将 Agent 逻辑（Python 代码）与系统调度（资源分配、请求路由）显式分离。</p><p style='margin-bottom:12px'>新手建议：(1) 先读 vLLM/PagedAttention 理解 LLM serving 基础；(2) 重点读 Nalar（arXiv 2601.05109），它最完整地定义了 Agent serving 的核心抽象；(3) 关注 FlashInfer 等 kernel 级优化——它们是底层性能的决定因素。</p></div>
     </div>
   </section>
 
@@ -632,41 +632,50 @@ html { scroll-behavior: smooth; }
     <div class="graph-card">
       <div class="mermaid">
 flowchart LR
-  subgraph cluster_system[MoE 推理系统与调度]
-    N_DeepSpeedMoE["DeepSpeed-MoE<br/>2022 ⭐484"]
-    N_MoESys["MoESys<br/>2022 ⭐49"]
-    N_Fiddler["Fiddler<br/>ICLR 2024 ⭐51"]
-    N_KTransformers["KTransformers<br/>SOSP 2025 ⭐10"]
-    N_ExpertFlow["ExpertFlow<br/>2024 ⭐22"]
-    N_D2MoE["D2MoE<br/>MobiCom 2025 ⭐7"]
-    N_OptimMoeInfer["Optim MoE Infer<br/>2024 ⭐9"]
+  subgraph cluster_core_serving ["Core LLM Serving"]
+    N2023_vLLM["vLLM / PagedAttention\nSOSP 2023"]
+    N2024_SGLang["SGLang\nRadixAttention 2024"]
+    N2025_FlashInfer["FlashInfer\nMLSys 2025"]
   end
-  subgraph cluster_arch[模型-系统协同设计]
-    N_DeepSeekV2["DeepSeek-V2<br/>2024 ⭐1044"]
-    N_MultiHeadMoE["Multi-Head MoE<br/>NeurIPS 2024 ⭐31"]
-    N_ShortcutEP["Shortcut Expert Parallel<br/>ICML 2024 ⭐25"]
-    N_SemanticPar["Semantic Parallelism<br/>2025 ⭐6"]
+  subgraph cluster_agent_serving ["Agent-Native Serving"]
+    N2026_Nalar["Nalar\nAgent Serving 2026"]
+    N2026_SDA["Software-Defined\nAgentic Serving 2026"]
+    N2024_IsolateGPT["IsolateGPT\nExecution Isolation 2024"]
+    N2026_DualPath["DualPath\nStorage BW 2026"]
   end
-  subgraph cluster_analysis[分析、综述与基准]
-    N_TowardsMoE["Towards MoE Deploy<br/>2023 ⭐39"]
-    N_EfficientInfer["Toward Efficient Infer<br/>NeurIPS 2024 ⭐30"]
-    N_SurveyMoE["Survey MoE Inference<br/>ACM 2024 ⭐31"]
-    N_ExploitAffinity["Expert Affinity<br/>IPDPS 2024 ⭐29"]
-    N_MoEGen["MoE-Gen<br/>2025 ⭐5"]
-    N_GRACEMoE["GRACE-MoE<br/>2025 ⭐4"]
-    N_MoEBench["MoE-Inference-Bench<br/>SC25-W ⭐4"]
+  subgraph cluster_scheduling ["Scheduling & QoS"]
+    N2025_Niyama["Niyama\nQoS Serving 2025"]
+    N2025_NexusSched["NexusSched\nTwo-Layer 2025"]
+    N2024_CascadeServe["CascadeServe\nModel Cascades 2024"]
   end
-  N_DeepSpeedMoE --> N_Fiddler
-  N_DeepSpeedMoE --> N_KTransformers
-  N_TowardsMoE --> N_EfficientInfer
-  N_TowardsMoE --> N_Fiddler
-  N_DeepSeekV2 --> N_MultiHeadMoE
-  N_DeepSeekV2 --> N_ShortcutEP
-  N_DeepSpeedMoE --> N_MoESys
-  N_EfficientInfer --> N_ExpertFlow
-  N_DeepSeekV2 --> N_SemanticPar
-  N_Fiddler --> N_D2MoE
-  N_ExploitAffinity --> N_GRACEMoE
+  subgraph cluster_quant_kernel ["Quant & Kernel"]
+    N2024_QServe["QServe\nW4A8KV4 2024"]
+    N2025_RLLM["RLLM Serving\nEmpirical Study 2025"]
+  end
+  N2023_vLLM --> N2024_SGLang
+  N2023_vLLM --> N2024_QServe
+  N2024_SGLang --> N2025_FlashInfer
+  N2024_SGLang --> N2026_Nalar
+  N2023_vLLM --> N2025_NexusSched
+  N2024_SGLang --> N2025_Niyama
+  N2025_FlashInfer -.-> N2026_Nalar
+  N2025_Niyama --> N2025_NexusSched
+  N2026_Nalar --> N2026_SDA
+  N2024_IsolateGPT --> N2026_DualPath
+  N2023_vLLM -.-> N2024_CascadeServe
+  N2025_RLLM -.-> N2026_Nalar
+  click N2024_SGLang call showPaperTooltip("N2024_SGLang")
+  click N2025_FlashInfer call showPaperTooltip("N2025_FlashInfer")
+  click N2024_QServe call showPaperTooltip("N2024_QServe")
+  click N2023_vLLM call showPaperTooltip("N2023_vLLM")
+  click N2024_CascadeServe call showPaperTooltip("N2024_CascadeServe")
+  click N2024_IsolateGPT call showPaperTooltip("N2024_IsolateGPT")
+  click N2025_NexusSched call showPaperTooltip("N2025_NexusSched")
+  click N2025_Niyama call showPaperTooltip("N2025_Niyama")
+  click N2025_RLLM call showPaperTooltip("N2025_RLLM")
+  click N2026_DualPath call showPaperTooltip("N2026_DualPath")
+  click N2026_Nalar call showPaperTooltip("N2026_Nalar")
+  click N2026_SDA call showPaperTooltip("N2026_SDA")
       </div>
     </div>
     <!-- Paper tooltip overlay -->
@@ -708,79 +717,43 @@ flowchart LR
     <div class="section-header">
       <span class="section-icon">📚</span>
       <span class="section-title">基础 Roadmap · 领域演进</span>
-      <span class="section-count">8 个节点</span>
+      <span class="section-count">4 个节点</span>
     </div>
     <div class="timeline">
       <div class="timeline-item key">
         <div class="timeline-card key">
-          <div class="timeline-year">2022</div>
-          <div class="timeline-title"><a href="https://arxiv.org/abs/2201.05596" target="_blank">DeepSpeed-MoE: Advancing Mixture-of-Experts Inference and Training to Power Next-Generation AI Scale</a><span class="key-badge">必读</span></div>
-          <div class="timeline-meta">Samyam Rajbhandari, Conglong Li, Z. Yao, Minjia Zhang, Reza Yazdani Aminabadi, A. A. Awan, Jeff Rasley, Yuxiong He</div>
-          <div style="font-size:13px;color:var(--text-muted)">DeepSpeed框架对MoE推理和训练的系统级优化，提出expert-level并行、通信优化和内存管理策略。</div>
-          <div class="timeline-pills"><span class="pill pill-solved">✅ MoE模型在大规模分布式环境下的高效推理和训练问题，通过expert parallelism和通信优化实现5x训练成本节省。</span><span class="pill pill-left">⚠️ 遗留：主要关注GPU-only部署，未充分利用CPU资源；对细粒度MoE（如DeepSeekMoE）支持有限。</span><span class="pill pill-cite">⭐ 484 引用</span></div>
-        </div>
-      </div>
-      <div class="timeline-item key">
-        <div class="timeline-card key">
-          <div class="timeline-year">2024</div>
-          <div class="timeline-title"><a href="https://arxiv.org/abs/2405.04434" target="_blank">DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model</a><span class="key-badge">必读</span></div>
-          <div class="timeline-meta">Zhihong Shao, Damai Dai, Daya Guo, Bo Liu, Zihan Wang, Huajian Xin</div>
-          <div style="font-size:13px;color:var(--text-muted)">236B参数MoE模型，引入Multi-head Latent Attention (MLA) 和 DeepSeekMoE架构，实现高效推理。</div>
-          <div class="timeline-pills"><span class="pill pill-solved">✅ 通过MLA压缩KV cache到latent vector，大幅减少推理时内存占用；DeepSeekMoE实现更细粒度的专家划分和共享专家隔离。</span><span class="pill pill-left">⚠️ 遗留：MLA与标准attention的兼容性问题；细粒度专家在分布式部署时All-to-All通信更频繁。</span><span class="pill pill-cite">⭐ 1k 引用</span></div>
-        </div>
-      </div>
-      <div class="timeline-item key">
-        <div class="timeline-card key">
-          <div class="timeline-year">2024</div>
-          <div class="timeline-title"><a href="https://arxiv.org/abs/2402.07033" target="_blank">Fiddler: CPU-GPU Orchestration for Fast Inference of Mixture-of-Experts Models</a><span class="key-badge">必读</span></div>
-          <div class="timeline-meta">Keisuke Kamahori, Yile Gu, Kan Zhu, Baris Kasikci</div>
-          <div style="font-size:13px;color:var(--text-muted)">ICLR 2024工作，提出CPU-GPU协同调度框架，让CPU承担部分专家计算以减少GPU内存压力。</div>
-          <div class="timeline-pills"><span class="pill pill-solved">✅ 在GPU内存不足时，通过将部分专家offload到CPU计算，同时优化数据传输和计算调度，实现高效MoE推理。</span><span class="pill pill-left">⚠️ 遗留：CPU计算速度仍慢于GPU，对延迟敏感场景不友好；未充分考虑异构CPU的性能差异。</span><span class="pill pill-cite">⭐ 51 引用</span></div>
-        </div>
-      </div>
-      <div class="timeline-item">
-        <div class="timeline-card">
-          <div class="timeline-year">2022</div>
-          <div class="timeline-title"><a href="https://arxiv.org/abs/2205.10034" target="_blank">MoESys: A Distributed and Efficient Mixture-of-Experts Training and Inference System for Internet Services</a></div>
-          <div class="timeline-meta">Liang Shen, Zhihua Wu, Weibao Gong</div>
-          <div style="font-size:13px;color:var(--text-muted)">面向互联网服务的分布式MoE训练和推理系统，关注服务级SLA和资源弹性。</div>
-          <div class="timeline-pills"><span class="pill pill-solved">✅ 解决MoE模型在在线服务场景下的低延迟推理需求，通过动态资源调度和expert placement优化。</span><span class="pill pill-left">⚠️ 遗留：主要针对特定服务场景，通用性有限；对超大规模模型（&gt;1T参数）的扩展性未验证。</span><span class="pill pill-cite">⭐ 49 引用</span></div>
-        </div>
-      </div>
-      <div class="timeline-item key">
-        <div class="timeline-card key">
           <div class="timeline-year">2023</div>
-          <div class="timeline-title"><a href="https://arxiv.org/abs/2303.06182" target="_blank">Towards MoE Deployment: Mitigating Inefficiencies in Mixture-of-Expert (MoE) Inference</a><span class="key-badge">必读</span></div>
-          <div class="timeline-meta">Haiyang Huang, Newsha Ardalani, Anna Sun, Liu Ke, Hsien-Hsin S. Lee, Shruti Bhosale, Carole-Jean Wu, Benjamin Lee</div>
-          <div style="font-size:13px;color:var(--text-muted)">Meta的工作，全面分析MoE推理的效率瓶颈：内存、通信、负载不均衡。</div>
-          <div class="timeline-pills"><span class="pill pill-solved">✅ 系统性刻画MoE推理瓶颈，提出expert offloading、communication compression等优化方向。</span><span class="pill pill-left">⚠️ 遗留：更多是分析性工作，提出的优化方案的工程实现细节不够完整。</span><span class="pill pill-cite">⭐ 39 引用</span></div>
+          <div class="timeline-title"><a href="https://arxiv.org/abs/2309.06180" target="_blank">Efficient Memory Management for Large Language Model Serving with PagedAttention (vLLM)</a><span class="key-badge">必读</span></div>
+          <div class="timeline-meta">Woosuk Kwon, Zhuohan Li, Siyuan Zhuang, Ying Sheng, Lianmin Zheng, Cody Hao Yu, Joseph Gonzalez, Hao Zhang, Ion Stoica</div>
+          <div style="font-size:13px;color:var(--text-muted)">提出 PagedAttention，借鉴操作系统虚拟内存的分页机制管理 KV cache，实现了近零浪费的内存管理和灵活的 KV cache 共享。vLLM 成为最主流的 LLM serving 引擎。</div>
+          <div class="timeline-pills"><span class="pill pill-solved">✅ KV cache 内存碎片化和冗余复制导致 batch size 受限，吞吐量低下</span><span class="pill pill-left">⚠️ 遗留：主要针对单模型单请求的交互模式，对 Agent 多轮工作流支持有限</span><span class="pill pill-cite">⭐ 2k 引用</span></div>
         </div>
       </div>
       <div class="timeline-item key">
         <div class="timeline-card key">
           <div class="timeline-year">2024</div>
-          <div class="timeline-title"><a href="" target="_blank">Toward Efficient Inference for Mixture of Experts</a><span class="key-badge">必读</span></div>
-          <div class="timeline-meta">Haiyang Huang, Newsha Ardalani, Anna Sun, Liu Ke, Hsien-Hsin S. Lee, Shruti Bhosale, Carole-Jean Wu, Benjamin Lee</div>
-          <div style="font-size:13px;color:var(--text-muted)">NeurIPS 2024，扩展Towards MoE Deployment的工作，提出更完整的MoE推理优化方案。</div>
-          <div class="timeline-pills"><span class="pill pill-solved">✅ 在前期分析基础上，实现了一系列MoE推理优化：expert选择性加载、通信压缩、动态batching。</span><span class="pill pill-left">⚠️ 遗留：在特定硬件配置下验证，跨平台泛化性有待验证。</span><span class="pill pill-cite">⭐ 30 引用</span></div>
+          <div class="timeline-title"><a href="https://arxiv.org/abs/2312.07104" target="_blank">SGLang: Efficient Execution of Structured Language Model Programs</a><span class="key-badge">必读</span></div>
+          <div class="timeline-meta">Lianmin Zheng, Liangsheng Yin, Zhiqiang Xie, Chuyue Sun, Jeff Huang, Cody Hao Yu, Shiyi Cao, Christos Kozyrakis, Ion Stoica, Joseph E. Gonzalez, Clark Barrett, Ying Sheng</div>
+          <div style="font-size:13px;color:var(--text-muted)">提出 SGLang，面向复杂 LLM 程序（含多轮调用、控制流、结构化输出）的高效执行系统。核心创新 RadixAttention 实现 KV cache 自动复用，在 agent control 任务上达到 6.4x 吞吐提升。</div>
+          <div class="timeline-pills"><span class="pill pill-solved">✅ 复杂 LLM 程序（多轮、few-shot、RAG pipeline）的高效执行问题</span><span class="pill pill-left">⚠️ 遗留：RadixAttention 的 tree-based cache 在超长 agent 轨迹下的 eviction 策略仍需优化</span><span class="pill pill-cite">⭐ 800 引用</span></div>
         </div>
       </div>
       <div class="timeline-item key">
         <div class="timeline-card key">
-          <div class="timeline-year">2024</div>
-          <div class="timeline-title"><a href="https://arxiv.org/abs/2412.14219" target="_blank">A Survey on Inference Optimization Techniques for Mixture of Experts Models</a><span class="key-badge">必读</span></div>
-          <div class="timeline-meta">Jiacheng Liu, Peng Tang, Wenfeng Wang, Yuhang Ren, Xiaofeng Hou, P. Heng, Minyi Guo, Chao Li</div>
-          <div style="font-size:13px;color:var(--text-muted)">ACM Computing Surveys综述，系统梳理MoE推理优化技术栈：模型压缩、并行策略、调度优化。</div>
-          <div class="timeline-pills"><span class="pill pill-solved">✅ 为研究者提供MoE推理优化的全景图，建立统一的分类体系。</span><span class="pill pill-left">⚠️ 遗留：综述类工作，不提出新方法；截止到2024年初，未能覆盖最新进展。</span><span class="pill pill-cite">⭐ 31 引用</span></div>
+          <div class="timeline-year">2025</div>
+          <div class="timeline-title"><a href="https://arxiv.org/abs/2501.01005" target="_blank">FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving</a><span class="key-badge">必读</span></div>
+          <div class="timeline-meta">Zihao Ye, Lequn Chen, Ruihang Lai, Wuwei Lin, Yineng Zhang, Stephanie Wang, Tianqi Chen, Baris Kasikci, Vinod Grover, Arvind Krishnamurthy, Luis Ceze</div>
+          <div style="font-size:13px;color:var(--text-muted)">可定制的高效 attention 引擎，block-sparse 格式 + JIT 编译，已集成 SGLang/vLLM/MLC-Engine。MLSys 2025。</div>
+          <div class="timeline-pills"><span class="pill pill-solved">✅ 不同 LLM 应用场景（长上下文、并行生成、结构化输出）需要不同的 attention 实现</span><span class="pill pill-left">⚠️ 遗留：对 Agent 工作流中异步 inter-request 依赖的 attention 模式尚未专门优化</span><span class="pill pill-cite">⭐ 200 引用</span></div>
         </div>
       </div>
       <div class="timeline-item">
         <div class="timeline-card">
           <div class="timeline-year">2024</div>
-          <div class="timeline-title"><a href="https://arxiv.org/abs/2401.08383" target="_blank">Exploiting Inter-Layer Expert Affinity for Accelerating Mixture-of-Experts Model Inference</a></div>
-          <div class="timeline-meta">Jinghan Yao, Quentin G. Anthony, A. Shafi, H. Subramoni, D. Panda</div>
-          <div style="font-size:13px;color:var(--text-muted)">IPDPS 2024，利用跨层专家亲和性减少All-to-All通信，优化分布式MoE推理。</div>
-          <div class="timeline-pills"><span class="pill pill-solved">✅ 发现相邻层的expert routing pattern高度相关，通过co-located placement减少跨节点通信。</span><span class="pill pill-left">⚠️ 遗留：依赖routing pattern的稳定性，在动态路由场景下效果可能下降。</span><span class="pill pill-cite">⭐ 29 引用</span></div>
+          <div class="timeline-title"><a href="https://arxiv.org/abs/2405.04532" target="_blank">QServe: W4A8KV4 Quantization and System Co-design for Efficient LLM Serving</a></div>
+          <div class="timeline-meta">Yujun Lin, Haotian Tang, Shang Yang, Zhekai Zhang, Guangxuan Xiao, Chuang Gan, Song Han</div>
+          <div style="font-size:13px;color:var(--text-muted)">提出 QoQ 量化算法（W4A8KV4），通过 progressive quantization 和 SmoothAttention 解决 INT4 量化的解量化开销问题。</div>
+          <div class="timeline-pills"><span class="pill pill-solved">✅ INT4 量化在大 batch serving 场景下因解量化开销（20-90%）反而变慢</span><span class="pill pill-left">⚠️ 遗留：对 MoE 模型和动态精度切换场景的适配尚待验证</span><span class="pill pill-cite">⭐ 150 引用</span></div>
         </div>
       </div>
     </div>
@@ -791,79 +764,13 @@ flowchart LR
     <div class="section-header">
       <span class="section-icon">🔬</span>
       <span class="section-title">前沿快照 · 同行评审视角</span>
-      <span class="section-count">10 篇论文</span>
+      <span class="section-count">8 篇论文</span>
     </div>
     <div class="frontier-grid">
       <div class="frontier-card">
         <div class="frontier-card-header">
-          <div class="frontier-title"><a href="" target="_blank">KTransformers: Unleashing the Full Potential of CPU/GPU Hybrid Inference for MoE Models</a>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">SOSP 2025 2025</div>
-          </div>
-          <div class="rating-badge cite">⭐ 10 citations</div>
-        </div>
-        <div class="reviews-wrap">
-
-        </div>
-      </div>
-      <div class="frontier-card">
-        <div class="frontier-card-header">
-          <div class="frontier-title"><a href="https://arxiv.org/abs/2410.17954" target="_blank">ExpertFlow: Optimized Expert Activation and Token Allocation for Efficient Mixture-of-Experts Inference</a>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">arXiv 2024</div>
-          </div>
-          <div class="rating-badge cite">⭐ 22 citations</div>
-        </div>
-        <div class="reviews-wrap">
-
-        </div>
-      </div>
-      <div class="frontier-card">
-        <div class="frontier-card-header">
-          <div class="frontier-title"><a href="https://arxiv.org/abs/2404.05019" target="_blank">Shortcut-connected Expert Parallelism for Accelerating Mixture-of-Experts</a>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">ICML 2024 2024</div>
-          </div>
-          <div class="rating-badge cite">⭐ 25 citations</div>
-        </div>
-        <div class="reviews-wrap">
-
-        </div>
-      </div>
-      <div class="frontier-card">
-        <div class="frontier-card-header">
-          <div class="frontier-title"><a href="https://arxiv.org/abs/2404.15045" target="_blank">Multi-Head Mixture-of-Experts</a>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">NeurIPS 2024 2024</div>
-          </div>
-          <div class="rating-badge cite">⭐ 31 citations</div>
-        </div>
-        <div class="reviews-wrap">
-
-        </div>
-      </div>
-      <div class="frontier-card">
-        <div class="frontier-card-header">
-          <div class="frontier-title"><a href="https://arxiv.org/abs/2504.15299" target="_blank">D2MoE: Dual Routing and Dynamic Scheduling for Efficient On-Device MoE-based LLM Serving</a>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">MobiCom 2025 2025</div>
-          </div>
-          <div class="rating-badge cite">⭐ 7 citations</div>
-        </div>
-        <div class="reviews-wrap">
-
-        </div>
-      </div>
-      <div class="frontier-card">
-        <div class="frontier-card-header">
-          <div class="frontier-title"><a href="https://arxiv.org/abs/2503.04398" target="_blank">Semantic Parallelism: Redefining Efficient MoE Inference via Model-Data Co-Scheduling</a>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">arXiv 2025</div>
-          </div>
-          <div class="rating-badge cite">⭐ 6 citations</div>
-        </div>
-        <div class="reviews-wrap">
-
-        </div>
-      </div>
-      <div class="frontier-card">
-        <div class="frontier-card-header">
-          <div class="frontier-title"><a href="https://arxiv.org/abs/2503.09716" target="_blank">MoE-Gen: High-Throughput MoE Inference on a Single GPU with Module-Based Batching</a>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">arXiv 2025</div>
+          <div class="frontier-title"><a href="https://arxiv.org/abs/2601.05109" target="_blank">Nalar: An Agent Serving Framework</a>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">arXiv 2026 2026</div>
           </div>
           <div class="rating-badge cite">⭐ 5 citations</div>
         </div>
@@ -873,10 +780,10 @@ flowchart LR
       </div>
       <div class="frontier-card">
         <div class="frontier-card-header">
-          <div class="frontier-title"><a href="https://arxiv.org/abs/2509.25041" target="_blank">GRACE-MoE: Grouping and Replication with Locality-Aware Routing for Efficient Distributed MoE Inference</a>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">arXiv 2025</div>
+          <div class="frontier-title"><a href="https://arxiv.org/abs/2601.03197" target="_blank">Software-Defined Agentic Serving</a>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">arXiv 2026 2026</div>
           </div>
-          <div class="rating-badge cite">⭐ 4 citations</div>
+          <div class="rating-badge cite">⭐ 3 citations</div>
         </div>
         <div class="reviews-wrap">
 
@@ -884,10 +791,10 @@ flowchart LR
       </div>
       <div class="frontier-card">
         <div class="frontier-card-header">
-          <div class="frontier-title"><a href="https://arxiv.org/abs/2410.17043" target="_blank">Optimizing Mixture-of-Experts Inference Time Combining Model Deployment and Communication Scheduling</a>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">arXiv 2024</div>
+          <div class="frontier-title"><a href="https://arxiv.org/abs/2403.04960" target="_blank">IsolateGPT: An Execution Isolation Architecture for LLM-Based Agentic Systems</a>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">arXiv 2024 2024</div>
           </div>
-          <div class="rating-badge cite">⭐ 9 citations</div>
+          <div class="rating-badge cite">⭐ 30 citations</div>
         </div>
         <div class="reviews-wrap">
 
@@ -895,10 +802,54 @@ flowchart LR
       </div>
       <div class="frontier-card">
         <div class="frontier-card-header">
-          <div class="frontier-title"><a href="https://arxiv.org/abs/2508.17467" target="_blank">MoE-Inference-Bench: Performance Evaluation of Mixture of Expert Large Language and Vision Models</a>
-            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">SC25-W 2025</div>
+          <div class="frontier-title"><a href="https://arxiv.org/abs/2602.24044" target="_blank">DualPath: Breaking the Storage Bandwidth Bottleneck in Agentic LLM Inference</a>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">arXiv 2026 2026</div>
           </div>
-          <div class="rating-badge cite">⭐ 4 citations</div>
+          <div class="rating-badge cite">⭐ 2 citations</div>
+        </div>
+        <div class="reviews-wrap">
+
+        </div>
+      </div>
+      <div class="frontier-card">
+        <div class="frontier-card-header">
+          <div class="frontier-title"><a href="https://arxiv.org/abs/2510.18672" target="_blank">Reasoning Language Model Inference Serving Unveiled: An Empirical Study</a>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">arXiv 2025 2025</div>
+          </div>
+          <div class="rating-badge cite">⭐ 15 citations</div>
+        </div>
+        <div class="reviews-wrap">
+
+        </div>
+      </div>
+      <div class="frontier-card">
+        <div class="frontier-card-header">
+          <div class="frontier-title"><a href="https://arxiv.org/abs/2503.22562" target="_blank">Niyama: Breaking the Silos of LLM Inference Serving</a>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">arXiv 2025 2025</div>
+          </div>
+          <div class="rating-badge cite">⭐ 10 citations</div>
+        </div>
+        <div class="reviews-wrap">
+
+        </div>
+      </div>
+      <div class="frontier-card">
+        <div class="frontier-card-header">
+          <div class="frontier-title"><a href="https://arxiv.org/abs/2509.23384" target="_blank">A Predictive and Synergistic Two-Layer Scheduling Framework for LLM Serving (NexusSched)</a>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">arXiv 2025 2025</div>
+          </div>
+          <div class="rating-badge cite">⭐ 8 citations</div>
+        </div>
+        <div class="reviews-wrap">
+
+        </div>
+      </div>
+      <div class="frontier-card">
+        <div class="frontier-card-header">
+          <div class="frontier-title"><a href="https://arxiv.org/abs/2406.14424" target="_blank">CascadeServe: Unlocking Model Cascades for Inference Serving</a>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">arXiv 2024 2024</div>
+          </div>
+          <div class="rating-badge cite">⭐ 20 citations</div>
         </div>
         <div class="reviews-wrap">
 
@@ -912,94 +863,70 @@ flowchart LR
     <div class="section-header">
       <span class="section-icon">📋</span>
       <span class="section-title">精选阅读清单</span>
-      <span class="section-count">11 篇</span>
+      <span class="section-count">8 篇</span>
     </div>
     <div class="reading-list">
       <div class="reading-item">
         <div class="reading-num">1</div>
         <div class="reading-body">
-          <div class="reading-title"><a href="https://arxiv.org/abs/2412.14219" target="_blank">A Survey on Inference Optimization Techniques for Mixture of Experts Models</a></div>
-          <div class="reading-reason">综述论文，建立全局认知的最佳起点</div>
+          <div class="reading-title"><a href="https://arxiv.org/abs/2309.06180" target="_blank">vLLM / PagedAttention</a></div>
+          <div class="reading-reason">理解 LLM serving 内存管理基础——所有后续工作的根基</div>
         </div>
         <span class="reading-type type-foundation">基础</span>
       </div>
       <div class="reading-item">
         <div class="reading-num">2</div>
         <div class="reading-body">
-          <div class="reading-title"><a href="https://arxiv.org/abs/2201.05596" target="_blank">DeepSpeed-MoE: Advancing Mixture-of-Experts Inference and Training to Power Next-Generation AI Scale</a></div>
-          <div class="reading-reason">MoE系统优化的奠基工作，DeepSpeed框架的核心</div>
+          <div class="reading-title"><a href="https://arxiv.org/abs/2312.07104" target="_blank">SGLang: Efficient Execution of Structured Language Model Programs</a></div>
+          <div class="reading-reason">从单模型 serving 到复杂 LLM 程序执行的关键跨越，RadixAttention 是 Agent 场景的核心优化</div>
         </div>
         <span class="reading-type type-foundation">基础</span>
       </div>
       <div class="reading-item">
         <div class="reading-num">3</div>
         <div class="reading-body">
-          <div class="reading-title"><a href="https://arxiv.org/abs/2405.04434" target="_blank">DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model</a></div>
-          <div class="reading-reason">模型-系统协同设计的典范，MLA是关键创新</div>
+          <div class="reading-title"><a href="https://arxiv.org/abs/2501.01005" target="_blank">FlashInfer: Efficient and Customizable Attention Engine</a></div>
+          <div class="reading-reason">底层 kernel 优化，理解 attention 计算的性能瓶颈</div>
         </div>
         <span class="reading-type type-foundation">基础</span>
       </div>
       <div class="reading-item">
         <div class="reading-num">4</div>
         <div class="reading-body">
-          <div class="reading-title"><a href="https://arxiv.org/abs/2402.07033" target="_blank">Fiddler: CPU-GPU Orchestration for Fast Inference of Mixture-of-Experts Models</a></div>
-          <div class="reading-reason">ICLR 2024，异构推理的代表作</div>
+          <div class="reading-title"><a href="https://arxiv.org/abs/2601.05109" target="_blank">Nalar: An Agent Serving Framework</a></div>
+          <div class="reading-reason">最完整的 Agent serving 框架设计，定义了核心抽象（futures/状态管理/两级控制）</div>
         </div>
-        <span class="reading-type type-foundation">基础</span>
+        <span class="reading-type type-frontier">前沿</span>
       </div>
       <div class="reading-item">
         <div class="reading-num">5</div>
         <div class="reading-body">
-          <div class="reading-title"><a href="https://arxiv.org/abs/2303.06182" target="_blank">Towards MoE Deployment: Mitigating Inefficiencies in MoE Inference</a></div>
-          <div class="reading-reason">Meta的系统分析，理解瓶颈的必读论文</div>
+          <div class="reading-title"><a href="https://arxiv.org/abs/2601.03197" target="_blank">Software-Defined Agentic Serving</a></div>
+          <div class="reading-reason">SDN 思路引入 Agent serving，可编程性是未来趋势</div>
         </div>
-        <span class="reading-type type-foundation">基础</span>
+        <span class="reading-type type-frontier">前沿</span>
       </div>
       <div class="reading-item">
         <div class="reading-num">6</div>
         <div class="reading-body">
-          <div class="reading-title"><a href="" target="_blank">Toward Efficient Inference for Mixture of Experts</a></div>
-          <div class="reading-reason">NeurIPS 2024，Meta在MoE推理优化上的完整方案</div>
+          <div class="reading-title"><a href="https://arxiv.org/abs/2510.18672" target="_blank">Reasoning LLM Inference Serving Unveiled</a></div>
+          <div class="reading-reason">理解 Reasoning LLM 的特殊 serving 行为，Agent 场景直接参考</div>
         </div>
-        <span class="reading-type type-foundation">基础</span>
+        <span class="reading-type type-frontier">前沿</span>
       </div>
       <div class="reading-item">
         <div class="reading-num">7</div>
         <div class="reading-body">
-          <div class="reading-title"><a href="" target="_blank">KTransformers: CPU/GPU Hybrid Inference for MoE Models</a></div>
-          <div class="reading-reason">SOSP 2025，系统顶会，CPU/GPU混合推理的最新突破</div>
+          <div class="reading-title"><a href="https://arxiv.org/abs/2503.22562" target="_blank">Niyama: Breaking the Silos of LLM Inference Serving</a></div>
+          <div class="reading-reason">QoS 驱动的异构工作负载协同调度</div>
         </div>
         <span class="reading-type type-frontier">前沿</span>
       </div>
       <div class="reading-item">
         <div class="reading-num">8</div>
         <div class="reading-body">
-          <div class="reading-title"><a href="https://arxiv.org/abs/2410.17954" target="_blank">ExpertFlow: Optimized Expert Activation and Token Allocation</a></div>
-          <div class="reading-reason">动态expert激活和token分配，22引用</div>
-        </div>
-        <span class="reading-type type-frontier">前沿</span>
-      </div>
-      <div class="reading-item">
-        <div class="reading-num">9</div>
-        <div class="reading-body">
-          <div class="reading-title"><a href="https://arxiv.org/abs/2404.05019" target="_blank">Shortcut-connected Expert Parallelism for Accelerating MoE</a></div>
-          <div class="reading-reason">ICML 2024，通过shortcut连接优化expert并行</div>
-        </div>
-        <span class="reading-type type-frontier">前沿</span>
-      </div>
-      <div class="reading-item">
-        <div class="reading-num">10</div>
-        <div class="reading-body">
-          <div class="reading-title"><a href="https://arxiv.org/abs/2504.15299" target="_blank">D2MoE: Dual Routing and Dynamic Scheduling for On-Device MoE</a></div>
-          <div class="reading-reason">MobiCom 2025，端侧MoE推理的创新方案</div>
-        </div>
-        <span class="reading-type type-frontier">前沿</span>
-      </div>
-      <div class="reading-item">
-        <div class="reading-num">11</div>
-        <div class="reading-body">
-          <div class="reading-title"><a href="https://arxiv.org/abs/2509.25041" target="_blank">GRACE-MoE: Grouping and Replication with Locality-Aware Routing</a></div>
-          <div class="reading-reason">通过分组和复制实现局部性感知路由</div>
+          <div class="reading-title"><a href="https://arxiv.org/abs/2509.23384" target="_blank">NexusSched: Two-Layer Scheduling Framework</a></div>
+          <div class="reading-reason">生产级部署的调度框架，FlowGPT 验证</div>
         </div>
         <span class="reading-type type-frontier">前沿</span>
       </div>
@@ -1016,14 +943,20 @@ flowchart LR
       <div class="resource-section">
         <div class="resource-section-title">💻 GitHub 开源实现</div>
         <div class="resource-item">
-          <div class="resource-name"><a href="https://github.com/microsoft/Tutel" target="_blank">🐙 microsoft/Tutel</a></div>
-          <div class="resource-meta"><span class="stars">⭐ 976</span><span>Microsoft的自适应MoE训练和推理框架</span></div>
+          <div class="resource-name"><a href="https://github.com/vllm-project/vllm" target="_blank">🐙 vllm-project/vllm</a></div>
+          <div class="resource-meta"><span class="stars">⭐ 73.3k</span><span>最主流 LLM serving 引擎</span></div>
         </div>        <div class="resource-item">
-          <div class="resource-name"><a href="https://github.com/withinmiaov/A-Survey-on-Mixture-of-Experts-in-LLMs" target="_blank">🐙 withinmiaov/A-Survey-on-Mixture-of-Experts-in-LLMs</a></div>
-          <div class="resource-meta"><span class="stars">⭐ 484</span><span>MoE in LLMs综述资源列表</span></div>
+          <div class="resource-name"><a href="https://github.com/sgl-project/sglang" target="_blank">🐙 sgl-project/sglang</a></div>
+          <div class="resource-meta"><span class="stars">⭐ 24.7k</span><span>结构化 LLM 程序高效执行</span></div>
         </div>        <div class="resource-item">
-          <div class="resource-name"><a href="https://github.com/pprp/Awesome-Efficient-MoE" target="_blank">🐙 pprp/Awesome-Efficient-MoE</a></div>
-          <div class="resource-meta"><span class="stars">⭐ 168</span><span>高效MoE论文和工具精选列表</span></div>
+          <div class="resource-name"><a href="https://github.com/flashinfer-ai/flashinfer" target="_blank">🐙 flashinfer-ai/flashinfer</a></div>
+          <div class="resource-meta"><span class="stars">⭐ 2k+</span><span>可定制 attention 引擎</span></div>
+        </div>        <div class="resource-item">
+          <div class="resource-name"><a href="https://github.com/kvcache-ai/Mooncake" target="_blank">🐙 kvcache-ai/Mooncake</a></div>
+          <div class="resource-meta"><span class="stars">⭐ 4.9k</span><span>KV cache 管理系统</span></div>
+        </div>        <div class="resource-item">
+          <div class="resource-name"><a href="https://github.com/mit-han-lab/omniserve" target="_blank">🐙 mit-han-lab/omniserve</a></div>
+          <div class="resource-meta"><span class="stars">⭐ 1k+</span><span>QServe 量化推理</span></div>
         </div>
       </div>
     </div>
@@ -1039,56 +972,56 @@ flowchart LR
     <div class="author-card">
       <div class="author-rank">#1</div>
       <div class="author-body">
-        <div class="author-name"><a href="" target="_blank">Carole-Jean Wu</a><button data-name="Carole-Jean Wu" onclick="sendEmailRequest(this.dataset.name)" style="float:right;background:#2563eb;color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:8px;">✉️ 写信联系</button></div>
-        <div class="author-institution">🏛️ Meta / Arizona State University</div>
-        <div class="author-recent">近期：Towards MoE Deployment, Toward Efficient Inference for MoE</div>
+        <div class="author-name"><a href="" target="_blank">Ion Stoica</a><button data-name="Ion Stoica" onclick="sendEmailRequest(this.dataset.name)" style="float:right;background:#2563eb;color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:8px;">✉️ 写信联系</button></div>
+        <div class="author-institution">🏛️ UC Berkeley</div>
+        <div class="author-recent">近期：vLLM/SGLang 核心，分布式系统泰斗</div>
       </div>
-      <div class="author-count">2<span>论文</span></div>
+      <div class="author-count">50<span>论文</span></div>
     </div>
     <div class="author-card">
       <div class="author-rank">#2</div>
       <div class="author-body">
-        <div class="author-name"><a href="" target="_blank">Haiyang Huang</a><button data-name="Haiyang Huang" onclick="sendEmailRequest(this.dataset.name)" style="float:right;background:#2563eb;color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:8px;">✉️ 写信联系</button></div>
-        <div class="author-institution">🏛️ Meta</div>
-        <div class="author-recent">近期：Towards MoE Deployment, Toward Efficient Inference for MoE (NeurIPS 2024)</div>
+        <div class="author-name"><a href="" target="_blank">Joseph E. Gonzalez</a><button data-name="Joseph E. Gonzalez" onclick="sendEmailRequest(this.dataset.name)" style="float:right;background:#2563eb;color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:8px;">✉️ 写信联系</button></div>
+        <div class="author-institution">🏛️ UC Berkeley</div>
+        <div class="author-recent">近期：SGLang, vLLM, LLM serving 系统</div>
       </div>
-      <div class="author-count">2<span>论文</span></div>
+      <div class="author-count">40<span>论文</span></div>
     </div>
     <div class="author-card">
       <div class="author-rank">#3</div>
       <div class="author-body">
-        <div class="author-name"><a href="" target="_blank">Samyam Rajbhandari</a><button data-name="Samyam Rajbhandari" onclick="sendEmailRequest(this.dataset.name)" style="float:right;background:#2563eb;color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:8px;">✉️ 写信联系</button></div>
-        <div class="author-institution">🏛️ Microsoft (DeepSpeed)</div>
-        <div class="author-recent">近期：DeepSpeed-MoE</div>
+        <div class="author-name"><a href="" target="_blank">Ying Sheng</a><button data-name="Ying Sheng" onclick="sendEmailRequest(this.dataset.name)" style="float:right;background:#2563eb;color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:8px;">✉️ 写信联系</button></div>
+        <div class="author-institution">🏛️ Stanford/UC Berkeley</div>
+        <div class="author-recent">近期：SGLang 一作，RadixAttention 提出者</div>
       </div>
-      <div class="author-count">1<span>论文</span></div>
+      <div class="author-count">15<span>论文</span></div>
     </div>
     <div class="author-card">
       <div class="author-rank">#4</div>
       <div class="author-body">
-        <div class="author-name"><a href="" target="_blank">Zhihong Shao</a><button data-name="Zhihong Shao" onclick="sendEmailRequest(this.dataset.name)" style="float:right;background:#2563eb;color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:8px;">✉️ 写信联系</button></div>
-        <div class="author-institution">🏛️ DeepSeek AI</div>
-        <div class="author-recent">近期：DeepSeek-V2 (1044 citations)</div>
+        <div class="author-name"><a href="" target="_blank">Woosuk Kwon</a><button data-name="Woosuk Kwon" onclick="sendEmailRequest(this.dataset.name)" style="float:right;background:#2563eb;color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:8px;">✉️ 写信联系</button></div>
+        <div class="author-institution">🏛️ UC Berkeley</div>
+        <div class="author-recent">近期：vLLM/PagedAttention 一作</div>
       </div>
-      <div class="author-count">1<span>论文</span></div>
+      <div class="author-count">10<span>论文</span></div>
     </div>
     <div class="author-card">
       <div class="author-rank">#5</div>
       <div class="author-body">
-        <div class="author-name"><a href="" target="_blank">Baris Kasikci</a><button data-name="Baris Kasikci" onclick="sendEmailRequest(this.dataset.name)" style="float:right;background:#2563eb;color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:8px;">✉️ 写信联系</button></div>
-        <div class="author-institution">🏛️ University of Michigan</div>
-        <div class="author-recent">近期：Fiddler (ICLR 2024)</div>
+        <div class="author-name"><a href="" target="_blank">Tianqi Chen</a><button data-name="Tianqi Chen" onclick="sendEmailRequest(this.dataset.name)" style="float:right;background:#2563eb;color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:8px;">✉️ 写信联系</button></div>
+        <div class="author-institution">🏛️ CMU</div>
+        <div class="author-recent">近期：FlashInfer, MLC-LLM, TVM 生态</div>
       </div>
-      <div class="author-count">1<span>论文</span></div>
+      <div class="author-count">60<span>论文</span></div>
     </div>
     <div class="author-card">
       <div class="author-rank">#6</div>
       <div class="author-body">
-        <div class="author-name"><a href="" target="_blank">Minyi Guo</a><button data-name="Minyi Guo" onclick="sendEmailRequest(this.dataset.name)" style="float:right;background:#2563eb;color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:8px;">✉️ 写信联系</button></div>
-        <div class="author-institution">🏛️ Shanghai Jiao Tong University</div>
-        <div class="author-recent">近期：A Survey on MoE Inference Optimization (ACM Computing Surveys)</div>
+        <div class="author-name"><a href="" target="_blank">Saurabh Agarwal</a><button data-name="Saurabh Agarwal" onclick="sendEmailRequest(this.dataset.name)" style="float:right;background:#2563eb;color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:8px;">✉️ 写信联系</button></div>
+        <div class="author-institution">🏛️ Unknown</div>
+        <div class="author-recent">近期：Nalar + Software-Defined Agentic Serving 作者</div>
       </div>
-      <div class="author-count">1<span>论文</span></div>
+      <div class="author-count">3<span>论文</span></div>
     </div>
     </div>
   </section>
@@ -1096,7 +1029,7 @@ flowchart LR
 </div>
 
 <div class="footer">
-  <strong>FrontierPilot</strong> · "一个课题，从小白到专家" · 成长型知识库 · 生成时间：2026-03-17 14:15
+  <strong>FrontierPilot</strong> · "一个课题，从小白到专家" · 成长型知识库 · 生成时间：2026-03-17 14:27
 </div>
 
 <script>
@@ -1107,7 +1040,7 @@ mermaid.initialize({ startOnLoad: true, theme: 'base', themeVariables: {
 }, securityLevel: 'loose' });
 
 // ── Interactive Knowledge Graph ──
-const paperIndex = {};
+const paperIndex = {"N2024_SGLang": {"title": "SGLang: Efficient Execution of Structured Language Model Programs", "authors": ["Lianmin Zheng", "Liangsheng Yin", "Zhiqiang Xie", "Chuyue Sun", "Jeff Huang", "Cody Hao Yu", "Shiyi Cao", "Christos Kozyrakis", "Ion Stoica", "Joseph E. Gonzalez", "Clark Barrett", "Ying Sheng"], "year": 2024, "citation_count": 800, "venue": "", "arxiv_id": "", "ss_paper_id": "", "abstract": "提出 SGLang，面向复杂 LLM 程序（含多轮调用、控制流、结构化输出）的高效执行系统。核心创新 RadixAttention 实现 KV cache 自动复用，在 agent control 任务上达到 6.4x 吞吐提升。", "url": "https://arxiv.org/abs/2312.07104", "type": "foundation"}, "N2025_FlashInfer": {"title": "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving", "authors": ["Zihao Ye", "Lequn Chen", "Ruihang Lai", "Wuwei Lin", "Yineng Zhang", "Stephanie Wang", "Tianqi Chen", "Baris Kasikci", "Vinod Grover", "Arvind Krishnamurthy", "Luis Ceze"], "year": 2025, "citation_count": 200, "venue": "", "arxiv_id": "", "ss_paper_id": "", "abstract": "可定制的高效 attention 引擎，block-sparse 格式 + JIT 编译，已集成 SGLang/vLLM/MLC-Engine。MLSys 2025。", "url": "https://arxiv.org/abs/2501.01005", "type": "foundation"}, "N2024_QServe": {"title": "QServe: W4A8KV4 Quantization and System Co-design for Efficient LLM Serving", "authors": ["Yujun Lin", "Haotian Tang", "Shang Yang", "Zhekai Zhang", "Guangxuan Xiao", "Chuang Gan", "Song Han"], "year": 2024, "citation_count": 150, "venue": "", "arxiv_id": "", "ss_paper_id": "", "abstract": "提出 QoQ 量化算法（W4A8KV4），通过 progressive quantization 和 SmoothAttention 解决 INT4 量化的解量化开销问题。", "url": "https://arxiv.org/abs/2405.04532", "type": "foundation"}, "N2023_vLLM": {"title": "Efficient Memory Management for Large Language Model Serving with PagedAttention (vLLM)", "authors": ["Woosuk Kwon", "Zhuohan Li", "Siyuan Zhuang", "Ying Sheng", "Lianmin Zheng", "Cody Hao Yu", "Joseph Gonzalez", "Hao Zhang", "Ion Stoica"], "year": 2023, "citation_count": 2500, "venue": "", "arxiv_id": "", "ss_paper_id": "", "abstract": "提出 PagedAttention，借鉴操作系统虚拟内存的分页机制管理 KV cache，实现了近零浪费的内存管理和灵活的 KV cache 共享。vLLM 成为最主流的 LLM serving 引擎。", "url": "https://arxiv.org/abs/2309.06180", "type": "foundation"}, "N2024_CascadeServe": {"title": "CascadeServe: Unlocking Model Cascades for Inference Serving", "authors": [], "year": 2024, "citation_count": 20, "venue": "arXiv 2024", "arxiv_id": "", "ss_paper_id": "", "abstract": "模型级联优化推理服务。离线预计算 gear plan，在线近最优负载自适应，节省 2-3x 成本。", "url": "https://arxiv.org/abs/2406.14424", "type": "frontier", "avg_rating": null}, "N2024_IsolateGPT": {"title": "IsolateGPT: An Execution Isolation Architecture for LLM-Based Agentic Systems", "authors": [], "year": 2024, "citation_count": 30, "venue": "arXiv 2024", "arxiv_id": "", "ss_paper_id": "", "abstract": "针对 LLM Agent 生态的安全隔离问题，提出执行隔离架构。在不影响功能的前提下提供安全/隐私保障，性能开销低于 30%。", "url": "https://arxiv.org/abs/2403.04960", "type": "frontier", "avg_rating": null}, "N2025_NexusSched": {"title": "A Predictive and Synergistic Two-Layer Scheduling Framework for LLM Serving (NexusSched)", "authors": [], "year": 2025, "citation_count": 8, "venue": "arXiv 2025", "arxiv_id": "", "ss_paper_id": "", "abstract": "集群-引擎两层架构的预测性调度。结构化在线性能模型提供前瞻性估计，引擎层 LENS 做 SLO-aware 调度，集群层 PRISM 做状态驱动路由。SLO 达成率 +43%，吞吐最高 3x。FlowGPT 生产验证。", "url": "https://arxiv.org/abs/2509.23384", "type": "frontier", "avg_rating": null}, "N2025_Niyama": {"title": "Niyama: Breaking the Silos of LLM Inference Serving", "authors": [], "year": 2025, "citation_count": 10, "venue": "arXiv 2025", "arxiv_id": "", "ss_paper_id": "", "abstract": "细粒度 QoS 分类 + 动态 chunking + 混合优先级，共享基础设施上协同调度异构工作负载，容量提升 32%，SLO 违反降一个量级。", "url": "https://arxiv.org/abs/2503.22562", "type": "frontier", "avg_rating": null}, "N2025_RLLM": {"title": "Reasoning Language Model Inference Serving Unveiled: An Empirical Study", "authors": [], "year": 2025, "citation_count": 15, "venue": "arXiv 2025", "arxiv_id": "", "ss_paper_id": "", "abstract": "首次全面研究 RLLM serving 行为。四大差异：内存波动、straggler 请求、自适应运行时长、领域偏好。量化和投机解码有效，但 prefix/KV cache 量化对小模型可能反效果。", "url": "https://arxiv.org/abs/2510.18672", "type": "frontier", "avg_rating": null}, "N2026_DualPath": {"title": "DualPath: Breaking the Storage Bandwidth Bottleneck in Agentic LLM Inference", "authors": [], "year": 2026, "citation_count": 2, "venue": "arXiv 2026", "arxiv_id": "", "ss_paper_id": "", "abstract": "解决 Agent LLM 推理中的存储带宽瓶颈——Agent 工作流频繁读写中间状态，存储带宽成为新瓶颈。", "url": "https://arxiv.org/abs/2602.24044", "type": "frontier", "avg_rating": null}, "N2026_Nalar": {"title": "Nalar: An Agent Serving Framework", "authors": [], "year": 2026, "citation_count": 5, "venue": "arXiv 2026", "arxiv_id": "", "ss_paper_id": "", "abstract": "首个 ground-up 的 Agent serving 框架。核心：(1) 工作流与执行解耦——lightweight stubs 将 agent/tool 调用转为 futures；(2) 管理状态层——逻辑状态与物理存储解耦，支持复用/迁移/重试；(3) 两级控制——全局策略 + 局部事件驱动。实验：tail latency 降低 34-74%，2.9x 加速，支撑 80 RPS。", "url": "https://arxiv.org/abs/2601.05109", "type": "frontier", "avg_rating": null}, "N2026_SDA": {"title": "Software-Defined Agentic Serving", "authors": [], "year": 2026, "citation_count": 3, "venue": "arXiv 2026", "arxiv_id": "", "ss_paper_id": "", "abstract": "SDN 启发的可编程 Agent serving 框架。核心：Agent serving 应该是 programmable + system-aware 的，通过运行时状态感知控制通信属性，实现 serving-efficient 的响应式 Agent 系统。", "url": "https://arxiv.org/abs/2601.03197", "type": "frontier", "avg_rating": null}};
 let currentTooltipNodeId = null;
 
 function showPaperTooltip(nodeId) {
@@ -1281,7 +1214,7 @@ sections.forEach(s => observer.observe(s));
 
 // ── Chat (智能助手) ──
 const CHAT_SERVER = 'http://localhost:7779';
-const TOPIC_NAME = 'MoE Inference System Optimization';
+const TOPIC_NAME = 'Agent Serving System Optimization';
 const chatMessages = document.getElementById('chat-messages');
 const chatInput = document.getElementById('chat-input');
 const chatSendBtn = document.getElementById('chat-send-btn');
@@ -1574,7 +1507,7 @@ function saveMessage(id) {
 }
 
 // ── P2: Reviewer Consensus Heatmap ──
-const reviewerConsensus = {"papers": [{"title": "KTransformers: Unleashing the Full Potential of CP", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}, {"title": "ExpertFlow: Optimized Expert Activation and Token ", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}, {"title": "Shortcut-connected Expert Parallelism for Accelera", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}, {"title": "Multi-Head Mixture-of-Experts", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}, {"title": "D2MoE: Dual Routing and Dynamic Scheduling for Eff", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}, {"title": "Semantic Parallelism: Redefining Efficient MoE Inf", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}, {"title": "MoE-Gen: High-Throughput MoE Inference on a Single", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}, {"title": "GRACE-MoE: Grouping and Replication with Locality-", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}, {"title": "Optimizing Mixture-of-Experts Inference Time Combi", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}, {"title": "MoE-Inference-Bench: Performance Evaluation of Mix", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}], "theme_clusters": []};
+const reviewerConsensus = {"papers": [{"title": "Nalar: An Agent Serving Framework", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}, {"title": "Software-Defined Agentic Serving", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}, {"title": "IsolateGPT: An Execution Isolation Architecture fo", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}, {"title": "DualPath: Breaking the Storage Bandwidth Bottlenec", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}, {"title": "Reasoning Language Model Inference Serving Unveile", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}, {"title": "Niyama: Breaking the Silos of LLM Inference Servin", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}, {"title": "A Predictive and Synergistic Two-Layer Scheduling ", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}, {"title": "CascadeServe: Unlocking Model Cascades for Inferen", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}], "theme_clusters": []};
 
 let heatmapInited = false;
 function initHeatmap() {

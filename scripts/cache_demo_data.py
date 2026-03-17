@@ -94,9 +94,9 @@ print("\n[3/3] Fetching OpenReview ICLR 2024 AutoML reviews...")
 try:
     import openreview
     client = openreview.api.OpenReviewClient(
-        baseurl="https://api2.openreview.net",
-        username="weitong.qian@stu.pku.edu.cn",
-        password="PKU@lltqwt1121",
+        baseurl=os.environ.get("OPENREVIEW_BASE_URL", "https://api2.openreview.net"),
+        username=os.environ.get("OPENREVIEW_USERNAME", ""),
+        password=os.environ.get("OPENREVIEW_PASSWORD", ""),
     )
 
     # Search for AutoML-related papers in ICLR 2024

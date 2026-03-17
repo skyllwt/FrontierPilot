@@ -19,6 +19,7 @@ import subprocess
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
+from typing import List
 
 
 SCRIPT_DIR = Path(__file__).parent
@@ -716,7 +717,7 @@ DATASETS = {
 }
 
 
-def run_social_agent(topic_zh: str, fallback_wechat: dict = None) -> list[dict]:
+def run_social_agent(topic_zh: str, fallback_wechat: dict = None) -> List[dict]:
     """Run social_agent.py and convert results to social_actions format for HTML."""
     import os
     env = {k: v for k, v in os.environ.items() if k.upper() not in ("ALL_PROXY", "all_proxy")}

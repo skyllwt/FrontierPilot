@@ -72,10 +72,10 @@ Reviews are returned with:
 
 ## Environment Variables
 
-The scripts read credentials from environment. These are pre-configured:
-- `OPENREVIEW_USERNAME`: weitong.qian@stu.pku.edu.cn
-- `OPENREVIEW_PASSWORD`: PKU@lltqwt1121
-- `OPENREVIEW_BASE_URL`: https://api2.openreview.net
+The scripts read credentials from environment variables. Set them before use:
+- `OPENREVIEW_USERNAME`: your OpenReview account email
+- `OPENREVIEW_PASSWORD`: your OpenReview account password
+- `OPENREVIEW_BASE_URL`: https://api2.openreview.net (default, usually no need to set)
 
 ## Supported Venues
 

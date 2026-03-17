@@ -1,34 +1,15 @@
 ---
 name: frontierPilot
-description: FrontierPilot 学术探索主编排。当用户想探索一个研究方向、入场一个新领域、了解某个 AI/CS 方向时使用；也处理"更新 [topic] 的最新动态"请求（只执行更新分支）。执行三轨工作流：基础知识Roadmap + 前沿peer review分析 + 社交资源聚合，最终生成成长型知识库 HTML；知识库内置智能助手，支持在页面内社交主动探索（小红书专家发现 / 微信群入群）。
+description: Use when the user wants to explore a research topic/field (0→entry package) or update a topic’s latest updates. Produces a growing HTML knowledge base + fp_data_{TOPIC}.json via Semantic Scholar + OpenReview + arXiv + GitHub + Bilibili/WeChat. Do NOT use for pure Q&A, coding help, or when the user doesn’t want file outputs.
 ---
 
-# FrontierPilot — 学术领域成长型知识库主编排
+# FrontierPilot
 
-**定位**：将一个研究新手变成领域入门者，并持续陪伴其成长。
-- **首次探索**：输入方向名称，输出完整领域入场包（历史脉络 + 同行评审视角 + 中文资源 + 领域强组）
-- **持续更新**：定期追踪最新动态，将新论文追加到知识库的"最新动态"栏
+## Preconditions
 
-**触发条件**：
-- 首次探索：用户说"帮我探索 X 方向"、"我想入门 X"、"X 领域现在什么水平"、"带我了解 X 研究方向"
-- 更新动态：用户说"帮我更新 X 的最新动态"、"X 方向有什么新进展"、"更新一下 X 知识库"
-
----
-
-## 运行环境依赖
-
-| 依赖 | 用途 | 状态检测 |
-|------|------|---------|
-| OpenReview API | 轨道二 peer review 抓取 | 匿名访问，无需配置 |
-| Semantic Scholar API | 轨道一/二论文搜索 | 匿名访问；`SS_API_KEY` 可选提速 |
-| `xiaohongshu-mcp` Docker 容器 | 智能助手"社交探索"功能 | **可选**；缺失时自动降级为 demo 模式 |
-
-**xiaohongshu-mcp 启动方式**（一次配置，长期有效）：
-```bash
-docker start xiaohongshu-mcp   # 机器重启后需要执行一次
-```
-Cookie 有效期约 1-3 个月。过期后运行 `python3 scripts/xhs_login.py` 重新扫码登录。
-社交探索功能在 xiaohongshu-mcp 不可用时自动降级为 demo 模式，不影响主流程。
+- Optional but recommended: `SS_API_KEY` (avoids rate limiting).
+- OpenReview works anonymously; credentials improve access/throughput when needed.
+- 参考文档（按需读取，勿提前加载）：`references/data-schema.md`（JSON 字段）、`references/prompts.md`（LLM 提示词）、`references/openreview-venues.md`（venue 选择规则）、`references/runbook.md`（故障排查）
 
 ---
 
@@ -195,60 +176,16 @@ python3 /home/node/.openclaw/workspace/skills/semantic-scholar/scripts/semantic_
 
 #### Step 2B：OpenReview 多 venue-year 并行搜索
 
-**第一步：根据 topic 选择要搜索的 venue-year 组合。**
+Venue 选择规则和完整命令见 `references/openreview-venues.md`。
 
-所有可用 venue（均在 OpenReview 上有数据）：
-
-| Venue | 年份范围 | 适用 topic |
-|-------|---------|-----------|
-| **ICLR** | 2023 / 2024 / 2025 / 2026 | 所有 ML/AI topic，必选 |
-| **NeurIPS** | 2023 / 2024 / 2025 | 所有 ML/AI topic，必选 |
-| **ICML** | 2023 / 2024 / 2025 | 所有 ML/AI topic，必选 |
-| **COLM** | 2024 / 2025 | Language model、LLM、NLP、对话系统 |
-| **CoRL** | 2023 / 2024 | Robotics、Embodied AI、强化学习 |
-| **UAI** | 2023 / 2024 | 概率图模型、贝叶斯方法、因果推断 |
-
-> **LLM 选 venue 的规则**：
-> - 必选：ICLR + NeurIPS + ICML 最近两年（共 6 个）
-> - 按 topic 追加：topic 与 COLM/CoRL/UAI 高度相关时各加 1-2 年（总数控制在 8-10 个以内）
-> - 例：topic = "LLM Reasoning" → 追加 COLM 2024/2025
-> - 例：topic = "Robot Manipulation" → 追加 CoRL 2023/2024
-
-**第二步：执行搜索（以下命令可并行执行）。**
+必选：ICLR + NeurIPS + ICML 各取最近两年（共 6 个）。命令格式统一为：
 
 ```bash
-# ── 必选：ICLR ────────────────────────────────────────────────────────────
 python3 /home/node/.openclaw/workspace/skills/openreview-explorer/scripts/search_papers.py \
-  --venue "ICLR" --year 2025 --limit 50
-python3 /home/node/.openclaw/workspace/skills/openreview-explorer/scripts/search_papers.py \
-  --venue "ICLR" --year 2024 --limit 50
-# 若需更早覆盖，可追加 --year 2023
-
-# ── 必选：NeurIPS ─────────────────────────────────────────────────────────
-python3 /home/node/.openclaw/workspace/skills/openreview-explorer/scripts/search_papers.py \
-  --venue "NeurIPS" --year 2025 --limit 50
-python3 /home/node/.openclaw/workspace/skills/openreview-explorer/scripts/search_papers.py \
-  --venue "NeurIPS" --year 2024 --limit 50
-
-# ── 必选：ICML ────────────────────────────────────────────────────────────
-python3 /home/node/.openclaw/workspace/skills/openreview-explorer/scripts/search_papers.py \
-  --venue "ICML" --year 2025 --limit 50
-python3 /home/node/.openclaw/workspace/skills/openreview-explorer/scripts/search_papers.py \
-  --venue "ICML" --year 2024 --limit 50
-
-# ── 按 topic 追加（示例）────────────────────────────────────────────────────
-# LLM / language model topic:
-python3 /home/node/.openclaw/workspace/skills/openreview-explorer/scripts/search_papers.py \
-  --venue "COLM" --year 2024 --limit 50
-python3 /home/node/.openclaw/workspace/skills/openreview-explorer/scripts/search_papers.py \
-  --venue "COLM" --year 2025 --limit 50
-
-# Robotics / embodied AI topic:
-python3 /home/node/.openclaw/workspace/skills/openreview-explorer/scripts/search_papers.py \
-  --venue "CoRL" --year 2024 --limit 50
+  --venue "<VENUE>" --year <YEAR> --limit 50
 ```
 
-每次返回 `{"papers": [...], "total": N}`，每篇含 `forum_id`、`title`、`abstract`、`authors`、`url`。6-8 个 venue-year 汇总约 300-500 篇候选。
+⚠️ **不加 `--query`**，全量拉取后由 Step 2C 的 LLM 交叉匹配，避免漏论文。6 个 venue-year 汇总约 300-500 篇候选。
 
 #### Step 2C：交叉匹配（核心新步骤）→ 获得 forum_id
 
@@ -286,23 +223,7 @@ python3 /home/node/.openclaw/workspace/skills/openreview-explorer/scripts/get_re
 
 系统类 topic 的顶会（ASPLOS、OSDI、MLSys、SIGCOMM 等）不在 OpenReview，无法获取 peer review 数据。改用 **Semantic Scholar 引用量 + 发表 venue** 作为论文质量代理指标。
 
-**操作**：直接使用 Step 2A 已获取的前沿论文结果。对每篇论文，将其写入 `frontier` 字段时使用以下格式（注意用 `citation_count` 替代 `avg_rating`）：
-
-```json
-{
-  "title": "MoE-APEX: An Efficient MoE Inference System...",
-  "venue": "ASPLOS 2026",
-  "year": 2026,
-  "url": "https://arxiv.org/abs/2502.xxxxx",
-  "avg_rating": null,
-  "citation_count": 39,
-  "reviews": []
-}
-```
-
-**`citation_count` 填写规则**：从 Step 2A 的 SS 搜索结果中直接读取 `citationCount` 字段。若论文发表在高水平 systems 会议（ASPLOS/OSDI/SOSP/MLSys/SIGCOMM），在 `venue` 字段中**保留完整会议名和年份**（如 `"ASPLOS 2026"`），这是论文质量的核心信号。
-
-**展示效果**：generate_report.py 检测到 `avg_rating` 为 null 且 `citation_count` 存在时，自动显示为 `⭐ 39 citations`（灰色徽章），而不是 `N/A`。
+**操作**：使用 Step 2A 结果写入 `frontier`。设 `avg_rating: null`，用 `citation_count`（从 SS `citationCount` 字段读取）替代评分，`venue` 保留完整会议名（如 `"ASPLOS 2026"`），`reviews: []`。字段格式见 `references/data-schema.md`。
 
 ---
 
@@ -321,43 +242,11 @@ python3 /home/node/.openclaw/workspace/skills/openreview-explorer/scripts/get_re
 
 ### Step 2.5：流派聚类识别（三轨完成后执行）
 
-**目标**：将所有收集到的论文（foundation + frontier）按方法族分组，用于 graph_mermaid 的 subgraph 布局。
+将 foundation + frontier 所有论文按方法族分为 2-4 个 cluster。
 
-**输入**：所有论文的标题 + 摘要（foundation 和 frontier 合并）
+使用 `references/prompts.md` 中的"Step 2.5"prompt，输入 `node_id | year | title | 摘要前100字`。
 
-**LLM Prompt 框架**：
-```
-基于以下论文列表，将其分为 2-4 个方法族（methodological families）。
-每篇论文只属于一个流派。流派命名要简洁（如 "Score-based SDE"、"Flow-based Samplers"、"Latent Methods"）。
-输出 JSON 格式的 paper_clusters 数组。
-
-论文列表：[PAPER_LIST with title + abstract]
-```
-
-**输出格式**（写入 JSON 的 `paper_clusters` 字段）：
-```json
-[
-  {
-    "id": "cluster_sde",
-    "name": "Score-based / SDE Methods",
-    "subgraph_style": "fill:#eff6ff,stroke:#2563eb",
-    "paper_node_ids": ["N2019_NCSN", "N2020_DDPM", "N2021_SDE"]
-  },
-  {
-    "id": "cluster_flow",
-    "name": "Flow-based Samplers",
-    "subgraph_style": "fill:#faf5ff,stroke:#7c3aed",
-    "paper_node_ids": ["N2021_DDIM", "N2022_RF", "N2023_FM"]
-  },
-  {
-    "id": "cluster_latent",
-    "name": "Latent / Efficient Methods",
-    "subgraph_style": "fill:#f0fdf4,stroke:#059669",
-    "paper_node_ids": ["N2022_LDM", "N2023_DiT"]
-  }
-]
-```
-
+**输出**：写入 JSON `paper_clusters`（`[{id, name, subgraph_style, paper_node_ids}]`）。
 ⚠️ `paper_node_ids` 中的 ID 必须与 `graph_mermaid` 中的 Mermaid 节点 ID 完全一致。
 
 ---
@@ -386,16 +275,6 @@ python3 /home/node/.openclaw/workspace/skills/frontierPilot/scripts/search_socia
   2>/dev/null
 ```
 
-返回 JSON，格式：
-```json
-{
-  "bilibili": [{"title": "...", "url": "..."}],
-  "wechat": [{"title": "...", "url": "..."}]
-}
-```
-
-⚠️ **必须将 bilibili 和 wechat 两个 section 的内容都包含在最终输出中。** 即使某平台只有搜索页链接也要列出，不可丢弃。
-
 **轨道三输出**：写入 JSON 的 `resources` 对象（含 github/bilibili/wechat 三个列表）。⚠️ 三个列表必须全部存在；如果某平台结果为空，写入空数组但在 chat 中注明"搜索无结果，建议手动搜索：[关键词]"。
 
 ---
@@ -419,34 +298,11 @@ python3 /home/node/.openclaw/workspace/skills/semantic-scholar/scripts/semantic_
 
 ---
 
-### Step 4.5：合成 Field Overview（专家视角综述）
+### Step 4.5：合成 Field Overview（三轨 + Step 2.5 完成后）
 
-三轨数据收集完成后，在生成 HTML 之前，用 LLM 综合所有信息生成一段 300-400 字的专家视角综述。
+输入：foundation abstracts + reviewer strengths/weaknesses 汇总。使用 `references/prompts.md` 中的"Step 4.5"prompt。
 
-**输入**：
-- 轨道一：奠基论文的 abstract + problem_solved/problem_left
-- 轨道二：frontier 论文的 reviewer strengths 和 weaknesses 汇总
-
-**LLM Prompt 框架**：
-```
-基于以下信息，用 300-400 字写一段专家视角综述，面向研究新手。
-
-需要涵盖：
-1. 该领域的本质问题是什么（用一句话说清楚，避免术语堆砌）
-2. 2023-2024 年的主要共识是什么（被多数 reviewer 肯定的方向）
-3. 当前主要争议或开放问题（被 reviewer 反复质疑的点）
-4. 新手最应该优先关注什么（Top 1-2 个建议）
-
-写作风格：像一位资深博士在组会上给新生做 5 分钟 briefing，直接、实用、有洞察。
-不要写成论文摘要或综述论文风格。第一段就给出核心判断，不要铺垫。
-
-领域名称：[TOPIC]
-奠基论文摘要（节选）：[FOUNDATION_ABSTRACTS]
-Reviewer 评价汇总：[REVIEWER_INSIGHTS]
-```
-
-**输出格式**（写入 JSON 的 `field_overview` 字段）：
-纯文本字符串，约 300-400 字，用换行分段（每段一个主题）。
+**输出**：300-400 字中文专家综述，写入 JSON `field_overview`。
 
 ---
 
@@ -465,11 +321,21 @@ Reviewer 评价汇总：[REVIEWER_INSIGHTS]
 
 ### Step 5：生成成长型知识库 HTML + 启动智能助手
 
-三轨数据 + Field Overview + Top Authors 收集完成后，将所有结果整理为 JSON，调用 generate_report.py 生成成长型知识库 HTML：
+三轨数据 + Field Overview + Top Authors 收集完成后，将所有结果整理为 JSON，**写入** `fp_data_{TOPIC}.json`，再调用 generate_report.py。
 
+**⚠️ 写入 JSON 的正确方式**（禁止使用 `cat > file << 'EOF'`，会因转义和 delimiter 冲突导致解析失败）：
+
+使用 `write_fp_json.py` 从 stdin 写入并校验：
 ```bash
-# 输出路径容器内：/home/node/.openclaw/workspace/output/
-# 主机路径：      /home/corin/projects/FrontierPilot-workspace/output/（自动同步）
+python3 /home/node/.openclaw/workspace/skills/frontierPilot/scripts/write_fp_json.py \
+  /home/node/.openclaw/workspace/output/fp_data_{TOPIC}.json << 'ENDOFJSON'
+（将完整 JSON 粘贴于此；字符串内的双引号须转义为 \"，避免多余尾逗号）
+ENDOFJSON
+```
+delimiter 用 `ENDOFJSON`；若 JSON 内容含该字符串，改用 `__FP_JSON_END__`。
+
+然后生成 HTML：
+```bash
 mkdir -p /home/node/.openclaw/workspace/output
 python3 /home/node/.openclaw/workspace/skills/frontierPilot/scripts/generate_report.py \
   --data /home/node/.openclaw/workspace/output/fp_data_{TOPIC}.json \
@@ -519,24 +385,7 @@ nohup python3 /home/node/.openclaw/workspace/skills/frontierPilot/scripts/chat_s
   · 帮我给 [作者名] 写一封学术交流邮件
 ```
 
-**JSON 数据格式说明**（写入 `/home/node/.openclaw/workspace/output/fp_data_{TOPIC}.json`）：
-- `topic`：英文方向名，如 "AutoML"
-- `topic_zh`：中文方向名，如 "自动机器学习"
-- `field_overview`：300-400字专家视角综述字符串（Step 4.5 生成）
-- `foundation`：奠基论文列表，每项含 year/title/authors/description/problem_solved/problem_left/url/is_key/citation_count（来自 SS，精准）
-- `frontier`：前沿论文列表（目标 5-8 篇），每项含 title/forum_id/venue/year/url/avg_rating/reviews
-  - reviews 每项含 rating/strengths/weaknesses/related_work（reviewer 推荐的 related work 列表）
-- `reading_list`：阅读清单，每项含 title/type(foundation|frontier|recommended)/reason/url
-- `top_authors`：领域强组列表，每项含 name/institution/papers_count/recent_work/url（Step 3C 生成）
-- `resources`：含 github/bilibili/wechat 三个列表
-- `paper_clusters`：流派聚类（Step 2.5 生成），用于 subgraph 布局。每项含：
-  - `id`：唯一标识符（如 `"cluster_sde"`）
-  - `name`：流派名称（如 `"Score-based / SDE Methods"`）
-  - `subgraph_style`：subgraph 背景色（如 `"fill:#eff6ff,stroke:#2563eb"`）
-  - `paper_node_ids`：该流派的 Mermaid 节点 ID 列表（必须与 graph_mermaid 中 ID 一致）
-- `graph_mermaid`：Mermaid `flowchart LR` 代码，使用 `subgraph` 按 `paper_clusters` 分组，引用边来自 Step 1B 的 SS references 真实数据（不可 LLM 编造）。节点 ID 须与 `paper_clusters.paper_node_ids` 一致。
-- `latest_updates`：最新动态列表（首次生成时为空列表 `[]`），更新时追加项目
-  - 每项含 date/title/url/summary/source（如 "arXiv"）
+JSON 字段完整说明见 `references/data-schema.md`。核心顶层字段：`topic` / `topic_zh` / `field_overview` / `foundation` / `frontier` / `reading_list` / `top_authors` / `resources` / `paper_clusters` / `graph_mermaid` / `latest_updates`。
 
 ---
 
@@ -601,12 +450,8 @@ bash /home/node/.openclaw/workspace/skills/arxiv-watcher/scripts/search_arxiv.sh
 
 ## 注意事项
 
-1. **OpenReview query 过滤限制**：`--query` 仅在客户端对 `limit*5` 条结果做关键词匹配（标题+摘要子串匹配）。Step 2B 统一不带 `--query`，全量拉取后由 LLM / Step 2C 交叉匹配处理，避免漏掉相关论文。
-
-2. **OpenReview 登录**：环境变量已预配置，脚本自动登录。若 get_reviews.py 返回空列表，可能该论文尚无公开 reviews，跳过并注明。
-
-3. **执行顺序**：Step 1A/1B/1C + 轨道三可同步进行。Step 2B（OR 6次搜索）可并行。Step 2C 需 2A+2B 完成后执行，Step 2D 需 2C 完成后执行。Step 2.5（流派识别）需三轨完成后执行。Step 4.5（Field Overview）需三轨 + 2.5 完成后执行。
-
-5. **资源保存**：执行完成后，将阅读清单保存到 `memory/RESEARCH_LOG.md`，格式与 arxiv-watcher 的日志格式一致。
-
-6. **更新分支要求**：更新时只追加 `latest_updates`，不修改已有的 foundation/frontier/reading_list/top_authors/resources 字段。保护用户已有的知识库内容。
+- **执行顺序**：Track 1 + Track 3 立即并行。Step 2C 等 2A+2B；Step 2D 等 2C；Step 2.5 等三轨完成；Step 4.5 等 Step 2.5。
+- **graph_mermaid 引用边**：必须来自 Step 1B 的 SS 真实数据，不可 LLM 编造。
+- **get_reviews 返回空**：该论文暂无公开 reviews，跳过并注明，不阻塞流程。
+- **更新分支**：只追加 `latest_updates`，保护已有 foundation/frontier/reading_list/top_authors/resources。
+- **完成后**：将阅读清单追加到 `memory/RESEARCH_LOG.md`。

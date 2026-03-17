@@ -1,0 +1,359 @@
+{
+  "topic": "Agent Serving System Optimization",
+  "topic_zh": "Agent 服务系统优化",
+  "field_overview": "Agent Serving System Optimization 是 2024-2026 年快速崛起的系统研究方向，核心问题是：如何高效地为 LLM 驱动的智能体（Agent）工作负载提供推理服务？\n\n传统 LLM serving 系统（如 vLLM、SGLang）假设的是「单次请求→单次生成」的交互模式，但 Agent 工作流本质是多轮、异步、有状态的——涉及 tool calling、多模型编排、动态控制流和长时运行状态。这些特征让现有 serving 系统面临三类新挑战：(1) 动态调度——Agent 的执行路径由模型输出决定，无法提前预测；(2) 状态管理——长对话 + 工具执行结果需要持久化的逻辑状态，而非仅是 KV cache；(3) 异构组件——Agent pipeline 中可能混合不同模型（planner + executor）、不同精度、甚至非 LLM 组件。\n\n目前该领域呈现两条演进路线：一条是从传统 LLM serving 向上扩展，增加对 Agent 工作流的支持（如 Nalar 的 futures 机制、SDN-inspired serving 框架）；另一条是从 Agent 框架向下优化，嵌入 serving-aware 的资源管理。2025-2026 年的关键共识是：Agent serving 需要「工作流与执行解耦」的架构——将 Agent 逻辑（Python 代码）与系统调度（资源分配、请求路由）显式分离。\n\n新手建议：(1) 先读 vLLM/PagedAttention 理解 LLM serving 基础；(2) 重点读 Nalar（arXiv 2601.05109），它最完整地定义了 Agent serving 的核心抽象；(3) 关注 FlashInfer 等 kernel 级优化——它们是底层性能的决定因素。",
+  "foundation": [
+    {
+      "year": 2023,
+      "title": "Efficient Memory Management for Large Language Model Serving with PagedAttention (vLLM)",
+      "authors": [
+        "Woosuk Kwon",
+        "Zhuohan Li",
+        "Siyuan Zhuang",
+        "Ying Sheng",
+        "Lianmin Zheng",
+        "Cody Hao Yu",
+        "Joseph Gonzalez",
+        "Hao Zhang",
+        "Ion Stoica"
+      ],
+      "description": "提出 PagedAttention，借鉴操作系统虚拟内存的分页机制管理 KV cache，实现了近零浪费的内存管理和灵活的 KV cache 共享。vLLM 成为最主流的 LLM serving 引擎。",
+      "problem_solved": "KV cache 内存碎片化和冗余复制导致 batch size 受限，吞吐量低下",
+      "problem_left": "主要针对单模型单请求的交互模式，对 Agent 多轮工作流支持有限",
+      "url": "https://arxiv.org/abs/2309.06180",
+      "is_key": true,
+      "citation_count": 2500
+    },
+    {
+      "year": 2024,
+      "title": "SGLang: Efficient Execution of Structured Language Model Programs",
+      "authors": [
+        "Lianmin Zheng",
+        "Liangsheng Yin",
+        "Zhiqiang Xie",
+        "Chuyue Sun",
+        "Jeff Huang",
+        "Cody Hao Yu",
+        "Shiyi Cao",
+        "Christos Kozyrakis",
+        "Ion Stoica",
+        "Joseph E. Gonzalez",
+        "Clark Barrett",
+        "Ying Sheng"
+      ],
+      "description": "提出 SGLang，面向复杂 LLM 程序（含多轮调用、控制流、结构化输出）的高效执行系统。核心创新 RadixAttention 实现 KV cache 自动复用，在 agent control 任务上达到 6.4x 吞吐提升。",
+      "problem_solved": "复杂 LLM 程序（多轮、few-shot、RAG pipeline）的高效执行问题",
+      "problem_left": "RadixAttention 的 tree-based cache 在超长 agent 轨迹下的 eviction 策略仍需优化",
+      "url": "https://arxiv.org/abs/2312.07104",
+      "is_key": true,
+      "citation_count": 800
+    },
+    {
+      "year": 2025,
+      "title": "FlashInfer: Efficient and Customizable Attention Engine for LLM Inference Serving",
+      "authors": [
+        "Zihao Ye",
+        "Lequn Chen",
+        "Ruihang Lai",
+        "Wuwei Lin",
+        "Yineng Zhang",
+        "Stephanie Wang",
+        "Tianqi Chen",
+        "Baris Kasikci",
+        "Vinod Grover",
+        "Arvind Krishnamurthy",
+        "Luis Ceze"
+      ],
+      "description": "可定制的高效 attention 引擎，block-sparse 格式 + JIT 编译，已集成 SGLang/vLLM/MLC-Engine。MLSys 2025。",
+      "problem_solved": "不同 LLM 应用场景（长上下文、并行生成、结构化输出）需要不同的 attention 实现",
+      "problem_left": "对 Agent 工作流中异步 inter-request 依赖的 attention 模式尚未专门优化",
+      "url": "https://arxiv.org/abs/2501.01005",
+      "is_key": true,
+      "citation_count": 200
+    },
+    {
+      "year": 2024,
+      "title": "QServe: W4A8KV4 Quantization and System Co-design for Efficient LLM Serving",
+      "authors": [
+        "Yujun Lin",
+        "Haotian Tang",
+        "Shang Yang",
+        "Zhekai Zhang",
+        "Guangxuan Xiao",
+        "Chuang Gan",
+        "Song Han"
+      ],
+      "description": "提出 QoQ 量化算法（W4A8KV4），通过 progressive quantization 和 SmoothAttention 解决 INT4 量化的解量化开销问题。",
+      "problem_solved": "INT4 量化在大 batch serving 场景下因解量化开销（20-90%）反而变慢",
+      "problem_left": "对 MoE 模型和动态精度切换场景的适配尚待验证",
+      "url": "https://arxiv.org/abs/2405.04532",
+      "is_key": false,
+      "citation_count": 150
+    }
+  ],
+  "frontier": [
+    {
+      "title": "Nalar: An Agent Serving Framework",
+      "forum_id": null,
+      "venue": "arXiv 2026",
+      "year": 2026,
+      "url": "https://arxiv.org/abs/2601.05109",
+      "avg_rating": null,
+      "citation_count": 5,
+      "reviews": [],
+      "description": "首个 ground-up 的 Agent serving 框架。核心：(1) 工作流与执行解耦——lightweight stubs 将 agent/tool 调用转为 futures；(2) 管理状态层——逻辑状态与物理存储解耦，支持复用/迁移/重试；(3) 两级控制——全局策略 + 局部事件驱动。实验：tail latency 降低 34-74%，2.9x 加速，支撑 80 RPS。"
+    },
+    {
+      "title": "Software-Defined Agentic Serving",
+      "forum_id": null,
+      "venue": "arXiv 2026",
+      "year": 2026,
+      "url": "https://arxiv.org/abs/2601.03197",
+      "avg_rating": null,
+      "citation_count": 3,
+      "reviews": [],
+      "description": "SDN 启发的可编程 Agent serving 框架。核心：Agent serving 应该是 programmable + system-aware 的，通过运行时状态感知控制通信属性，实现 serving-efficient 的响应式 Agent 系统。"
+    },
+    {
+      "title": "IsolateGPT: An Execution Isolation Architecture for LLM-Based Agentic Systems",
+      "forum_id": null,
+      "venue": "arXiv 2024",
+      "year": 2024,
+      "url": "https://arxiv.org/abs/2403.04960",
+      "avg_rating": null,
+      "citation_count": 30,
+      "reviews": [],
+      "description": "针对 LLM Agent 生态的安全隔离问题，提出执行隔离架构。在不影响功能的前提下提供安全/隐私保障，性能开销低于 30%。"
+    },
+    {
+      "title": "DualPath: Breaking the Storage Bandwidth Bottleneck in Agentic LLM Inference",
+      "forum_id": null,
+      "venue": "arXiv 2026",
+      "year": 2026,
+      "url": "https://arxiv.org/abs/2602.24044",
+      "avg_rating": null,
+      "citation_count": 2,
+      "reviews": [],
+      "description": "解决 Agent LLM 推理中的存储带宽瓶颈——Agent 工作流频繁读写中间状态，存储带宽成为新瓶颈。"
+    },
+    {
+      "title": "Reasoning Language Model Inference Serving Unveiled: An Empirical Study",
+      "forum_id": null,
+      "venue": "arXiv 2025",
+      "year": 2025,
+      "url": "https://arxiv.org/abs/2510.18672",
+      "avg_rating": null,
+      "citation_count": 15,
+      "reviews": [],
+      "description": "首次全面研究 RLLM serving 行为。四大差异：内存波动、straggler 请求、自适应运行时长、领域偏好。量化和投机解码有效，但 prefix/KV cache 量化对小模型可能反效果。"
+    },
+    {
+      "title": "Niyama: Breaking the Silos of LLM Inference Serving",
+      "forum_id": null,
+      "venue": "arXiv 2025",
+      "year": 2025,
+      "url": "https://arxiv.org/abs/2503.22562",
+      "avg_rating": null,
+      "citation_count": 10,
+      "reviews": [],
+      "description": "细粒度 QoS 分类 + 动态 chunking + 混合优先级，共享基础设施上协同调度异构工作负载，容量提升 32%，SLO 违反降一个量级。"
+    },
+    {
+      "title": "A Predictive and Synergistic Two-Layer Scheduling Framework for LLM Serving (NexusSched)",
+      "forum_id": null,
+      "venue": "arXiv 2025",
+      "year": 2025,
+      "url": "https://arxiv.org/abs/2509.23384",
+      "avg_rating": null,
+      "citation_count": 8,
+      "reviews": [],
+      "description": "集群-引擎两层架构的预测性调度。结构化在线性能模型提供前瞻性估计，引擎层 LENS 做 SLO-aware 调度，集群层 PRISM 做状态驱动路由。SLO 达成率 +43%，吞吐最高 3x。FlowGPT 生产验证。"
+    },
+    {
+      "title": "CascadeServe: Unlocking Model Cascades for Inference Serving",
+      "forum_id": null,
+      "venue": "arXiv 2024",
+      "year": 2024,
+      "url": "https://arxiv.org/abs/2406.14424",
+      "avg_rating": null,
+      "citation_count": 20,
+      "reviews": [],
+      "description": "模型级联优化推理服务。离线预计算 gear plan，在线近最优负载自适应，节省 2-3x 成本。"
+    }
+  ],
+  "reading_list": [
+    {
+      "title": "vLLM / PagedAttention",
+      "type": "foundation",
+      "reason": "理解 LLM serving 内存管理基础——所有后续工作的根基",
+      "url": "https://arxiv.org/abs/2309.06180"
+    },
+    {
+      "title": "SGLang: Efficient Execution of Structured Language Model Programs",
+      "type": "foundation",
+      "reason": "从单模型 serving 到复杂 LLM 程序执行的关键跨越，RadixAttention 是 Agent 场景的核心优化",
+      "url": "https://arxiv.org/abs/2312.07104"
+    },
+    {
+      "title": "FlashInfer: Efficient and Customizable Attention Engine",
+      "type": "foundation",
+      "reason": "底层 kernel 优化，理解 attention 计算的性能瓶颈",
+      "url": "https://arxiv.org/abs/2501.01005"
+    },
+    {
+      "title": "Nalar: An Agent Serving Framework",
+      "type": "frontier",
+      "reason": "最完整的 Agent serving 框架设计，定义了核心抽象（futures/状态管理/两级控制）",
+      "url": "https://arxiv.org/abs/2601.05109"
+    },
+    {
+      "title": "Software-Defined Agentic Serving",
+      "type": "frontier",
+      "reason": "SDN 思路引入 Agent serving，可编程性是未来趋势",
+      "url": "https://arxiv.org/abs/2601.03197"
+    },
+    {
+      "title": "Reasoning LLM Inference Serving Unveiled",
+      "type": "frontier",
+      "reason": "理解 Reasoning LLM 的特殊 serving 行为，Agent 场景直接参考",
+      "url": "https://arxiv.org/abs/2510.18672"
+    },
+    {
+      "title": "Niyama: Breaking the Silos of LLM Inference Serving",
+      "type": "frontier",
+      "reason": "QoS 驱动的异构工作负载协同调度",
+      "url": "https://arxiv.org/abs/2503.22562"
+    },
+    {
+      "title": "NexusSched: Two-Layer Scheduling Framework",
+      "type": "frontier",
+      "reason": "生产级部署的调度框架，FlowGPT 验证",
+      "url": "https://arxiv.org/abs/2509.23384"
+    }
+  ],
+  "top_authors": [
+    {
+      "name": "Ion Stoica",
+      "institution": "UC Berkeley",
+      "papers_count": 50,
+      "recent_work": "vLLM/SGLang 核心，分布式系统泰斗",
+      "url": ""
+    },
+    {
+      "name": "Joseph E. Gonzalez",
+      "institution": "UC Berkeley",
+      "papers_count": 40,
+      "recent_work": "SGLang, vLLM, LLM serving 系统",
+      "url": ""
+    },
+    {
+      "name": "Ying Sheng",
+      "institution": "Stanford/UC Berkeley",
+      "papers_count": 15,
+      "recent_work": "SGLang 一作，RadixAttention 提出者",
+      "url": ""
+    },
+    {
+      "name": "Woosuk Kwon",
+      "institution": "UC Berkeley",
+      "papers_count": 10,
+      "recent_work": "vLLM/PagedAttention 一作",
+      "url": ""
+    },
+    {
+      "name": "Tianqi Chen",
+      "institution": "CMU",
+      "papers_count": 60,
+      "recent_work": "FlashInfer, MLC-LLM, TVM 生态",
+      "url": ""
+    },
+    {
+      "name": "Saurabh Agarwal",
+      "institution": "Unknown",
+      "papers_count": 3,
+      "recent_work": "Nalar + Software-Defined Agentic Serving 作者",
+      "url": ""
+    }
+  ],
+  "resources": {
+    "github": [
+      {
+        "name": "vllm-project/vllm",
+        "stars": "73.3k",
+        "url": "https://github.com/vllm-project/vllm",
+        "description": "最主流 LLM serving 引擎"
+      },
+      {
+        "name": "sgl-project/sglang",
+        "stars": "24.7k",
+        "url": "https://github.com/sgl-project/sglang",
+        "description": "结构化 LLM 程序高效执行"
+      },
+      {
+        "name": "flashinfer-ai/flashinfer",
+        "stars": "2k+",
+        "url": "https://github.com/flashinfer-ai/flashinfer",
+        "description": "可定制 attention 引擎"
+      },
+      {
+        "name": "kvcache-ai/Mooncake",
+        "stars": "4.9k",
+        "url": "https://github.com/kvcache-ai/Mooncake",
+        "description": "KV cache 管理系统"
+      },
+      {
+        "name": "mit-han-lab/omniserve",
+        "stars": "1k+",
+        "url": "https://github.com/mit-han-lab/omniserve",
+        "description": "QServe 量化推理"
+      }
+    ],
+    "bilibili": [],
+    "wechat": []
+  },
+  "paper_clusters": [
+    {
+      "id": "cluster_core_serving",
+      "name": "Core LLM Serving Systems",
+      "subgraph_style": "fill:#eff6ff,stroke:#2563eb",
+      "paper_node_ids": [
+        "N2023_vLLM",
+        "N2024_SGLang",
+        "N2025_FlashInfer"
+      ]
+    },
+    {
+      "id": "cluster_agent_serving",
+      "name": "Agent-Native Serving",
+      "subgraph_style": "fill:#fef3c7,stroke:#d97706",
+      "paper_node_ids": [
+        "N2026_Nalar",
+        "N2026_SDA",
+        "N2024_IsolateGPT",
+        "N2026_DualPath"
+      ]
+    },
+    {
+      "id": "cluster_scheduling",
+      "name": "Scheduling & QoS",
+      "subgraph_style": "fill:#f0fdf4,stroke:#059669",
+      "paper_node_ids": [
+        "N2025_Niyama",
+        "N2025_NexusSched",
+        "N2024_CascadeServe"
+      ]
+    },
+    {
+      "id": "cluster_quant_kernel",
+      "name": "Quantization & Kernel",
+      "subgraph_style": "fill:#faf5ff,stroke:#7c3aed",
+      "paper_node_ids": [
+        "N2024_QServe",
+        "N2025_RLLM"
+      ]
+    }
+  ],
+  "graph_mermaid": "flowchart LR\n  subgraph cluster_core_serving [\"Core LLM Serving\"]\n    N2023_vLLM[\"vLLM / PagedAttention\\nSOSP 2023\"]\n    N2024_SGLang[\"SGLang\\nRadixAttention 2024\"]\n    N2025_FlashInfer[\"FlashInfer\\nMLSys 2025\"]\n  end\n  subgraph cluster_agent_serving [\"Agent-Native Serving\"]\n    N2026_Nalar[\"Nalar\\nAgent Serving 2026\"]\n    N2026_SDA[\"Software-Defined\\nAgentic Serving 2026\"]\n    N2024_IsolateGPT[\"IsolateGPT\\nExecution Isolation 2024\"]\n    N2026_DualPath[\"DualPath\\nStorage BW 2026\"]\n  end\n  subgraph cluster_scheduling [\"Scheduling & QoS\"]\n    N2025_Niyama[\"Niyama\\nQoS Serving 2025\"]\n    N2025_NexusSched[\"NexusSched\\nTwo-Layer 2025\"]\n    N2024_CascadeServe[\"CascadeServe\\nModel Cascades 2024\"]\n  end\n  subgraph cluster_quant_kernel [\"Quant & Kernel\"]\n    N2024_QServe[\"QServe\\nW4A8KV4 2024\"]\n    N2025_RLLM[\"RLLM Serving\\nEmpirical Study 2025\"]\n  end\n  N2023_vLLM --> N2024_SGLang\n  N2023_vLLM --> N2024_QServe\n  N2024_SGLang --> N2025_FlashInfer\n  N2024_SGLang --> N2026_Nalar\n  N2023_vLLM --> N2025_NexusSched\n  N2024_SGLang --> N2025_Niyama\n  N2025_FlashInfer -.-> N2026_Nalar\n  N2025_Niyama --> N2025_NexusSched\n  N2026_Nalar --> N2026_SDA\n  N2024_IsolateGPT --> N2026_DualPath\n  N2023_vLLM -.-> N2024_CascadeServe\n  N2025_RLLM -.-> N2026_Nalar",
+  "latest_updates": [],
+  "last_updated_at": "2026-03-17T14:30:00+08:00"
+}
