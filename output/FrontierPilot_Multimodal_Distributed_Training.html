@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FrontierPilot · Multimodal Model Distributed Training Optimization 知识库</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+:root {
+  --primary: #2563eb;
+  --primary-light: #eff6ff;
+  --frontier: #7c3aed;
+  --frontier-light: #f5f3ff;
+  --social: #059669;
+  --social-light: #ecfdf5;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04);
+  --shadow-hover: 0 4px 12px rgba(0,0,0,0.12), 0 8px 32px rgba(0,0,0,0.06);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.6;
+}
+
+/* ── Header ── */
+.header {
+  background: linear-gradient(135deg, #1e40af 0%, #4338ca 50%, #7c3aed 100%);
+  color: white; padding: 40px 32px 32px; position: relative; overflow: hidden;
+}
+.header::before {
+  content: ''; position: absolute; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.header-inner { position: relative; max-width: 1100px; margin: 0 auto; }
+.logo { font-size: 13px; font-weight: 600; letter-spacing: 2px; opacity: 0.7; margin-bottom: 8px; }
+.header h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 8px; }
+.header-sub { opacity: 0.85; font-size: 1rem; margin-bottom: 20px; }
+.badges { display: flex; gap: 8px; flex-wrap: wrap; }
+.badge {
+  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 500;
+}
+
+/* ── Nav ── */
+.nav {
+  background: white; border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.nav-inner {
+  max-width: 1100px; margin: 0 auto; padding: 0 32px;
+  display: flex; gap: 4px; overflow-x: auto;
+}
+.nav-item {
+  padding: 14px 16px; font-size: 13px; font-weight: 500; color: var(--text-muted);
+  border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap;
+  text-decoration: none; transition: all 0.2s;
+}
+.nav-item:hover { color: var(--primary); }
+.nav-item.active { color: var(--primary); border-bottom-color: var(--primary); }
+.nav-item.panel-tab { color: var(--frontier); }
+.nav-item.panel-tab:hover { color: var(--frontier); opacity: 0.8; }
+.nav-item.panel-tab.active { color: var(--frontier); border-bottom-color: var(--frontier); }
+.nav-badge {
+  display: inline-block; background: var(--frontier); color: white;
+  border-radius: 10px; padding: 1px 6px; font-size: 10px; font-weight: 700;
+  margin-left: 4px; vertical-align: middle;
+}
+
+/* ── Layout ── */
+.container { max-width: 1100px; margin: 0 auto; padding: 32px; }
+.section { margin-bottom: 48px; scroll-margin-top: 60px; }
+.section-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 24px; padding-bottom: 12px; border-bottom: 2px solid var(--border);
+}
+.section-icon { font-size: 1.4rem; }
+.section-title { font-size: 1.25rem; font-weight: 700; }
+.section-count {
+  background: var(--primary-light); color: var(--primary);
+  border-radius: 12px; padding: 2px 8px; font-size: 12px; font-weight: 600;
+}
+
+/* ── Field Overview ── */
+.overview-card {
+  background: linear-gradient(135deg, #f0f7ff 0%, #f5f3ff 100%);
+  border-radius: var(--radius); padding: 28px 32px;
+  border: 1px solid #c7d2fe; box-shadow: var(--shadow);
+}
+.overview-text { font-size: 15px; line-height: 1.9; color: var(--text); }
+.overview-placeholder {
+  text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px;
+  border: 2px dashed var(--border); border-radius: var(--radius);
+}
+
+/* ── Graph ── */
+.graph-card {
+  background: var(--card); border-radius: var(--radius); padding: 24px;
+  box-shadow: var(--shadow); overflow-x: auto;
+}
+.mermaid { text-align: center; }
+.mermaid .node { cursor: pointer; }
+.mermaid .node:hover { filter: brightness(0.95); }
+
+/* ── Timeline (Foundation) ── */
+.timeline { position: relative; padding-left: 32px; }
+.timeline::before {
+  content: ''; position: absolute; left: 10px; top: 0; bottom: 0;
+  width: 2px; background: linear-gradient(to bottom, var(--primary), #c7d2fe);
+}
+.timeline-item { position: relative; margin-bottom: 28px; }
+.timeline-item::before {
+  content: ''; position: absolute; left: -26px; top: 8px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: white; border: 2px solid var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+.timeline-item.key::before {
+  background: var(--primary); width: 16px; height: 16px; left: -28px; top: 6px;
+}
+.timeline-card {
+  background: var(--card); border-radius: var(--radius); padding: 18px 20px;
+  box-shadow: var(--shadow); border-left: 3px solid transparent;
+  transition: all 0.2s;
+}
+.timeline-card:hover { box-shadow: var(--shadow-hover); transform: translateX(2px); }
+.timeline-card.key { border-left-color: var(--primary); }
+.timeline-year {
+  font-size: 11px; font-weight: 700; color: var(--primary);
+  letter-spacing: 1px; margin-bottom: 4px;
+}
+.timeline-title { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
+.timeline-title a { color: var(--text); text-decoration: none; }
+.timeline-title a:hover { color: var(--primary); }
+.timeline-meta { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+.timeline-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.pill {
+  font-size: 11px; padding: 3px 8px; border-radius: 8px; font-weight: 500;
+}
+.pill-solved { background: #dcfce7; color: #166534; }
+.pill-left { background: #fee2e2; color: #991b1b; }
+.pill-cite { background: #fef3c7; color: #92400e; }
+.key-badge {
+  display: inline-block; background: var(--primary); color: white;
+  font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle;
+}
+
+/* ── Frontier Cards ── */
+.frontier-grid { display: grid; gap: 20px; }
+.frontier-card {
+  background: var(--card); border-radius: var(--radius); padding: 20px;
+  box-shadow: var(--shadow); border-top: 3px solid var(--frontier);
+}
+.frontier-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+.frontier-title { font-size: 1rem; font-weight: 600; }
+.frontier-title a { color: var(--text); text-decoration: none; }
+.frontier-title a:hover { color: var(--frontier); }
+.rating-badge {
+  flex-shrink: 0; background: var(--frontier-light); color: var(--frontier);
+  border-radius: 8px; padding: 4px 10px; font-size: 13px; font-weight: 700;
+  white-space: nowrap;
+}
+.rating-badge.high { background: #dcfce7; color: #166534; }
+.rating-badge.mid { background: #fef9c3; color: #854d0e; }
+.rating-badge.low { background: #fee2e2; color: #991b1b; }
+.rating-badge.cite { background: #f3f4f6; color: #374151; }
+.reviews-wrap { display: grid; gap: 10px; margin-top: 12px; }
+.review-item {
+  background: var(--bg); border-radius: 8px; padding: 12px 14px;
+  border-left: 3px solid var(--border);
+}
+.review-rating { font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; }
+.review-pro { color: #166534; font-size: 13px; margin-bottom: 4px; }
+.review-con { color: #991b1b; font-size: 13px; margin-bottom: 4px; }
+.review-related { margin-top: 8px; }
+.review-related-label { font-size: 11px; color: var(--frontier); font-weight: 600; }
+.related-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+.related-tag {
+  background: var(--frontier-light); color: var(--frontier);
+  font-size: 11px; padding: 2px 7px; border-radius: 6px;
+}
+
+/* ── Reading List ── */
+.reading-list { display: grid; gap: 10px; }
+.reading-item {
+  background: var(--card); border-radius: 10px; padding: 14px 16px;
+  box-shadow: var(--shadow); display: flex; align-items: flex-start; gap: 12px;
+}
+.reading-num {
+  flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+  background: var(--primary-light); color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+}
+.reading-body { flex: 1; min-width: 0; }
+.reading-title { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+.reading-title a { color: var(--text); text-decoration: none; }
+.reading-title a:hover { color: var(--primary); }
+.reading-reason { font-size: 12px; color: var(--text-muted); }
+.reading-type {
+  flex-shrink: 0; font-size: 10px; padding: 2px 7px; border-radius: 6px; font-weight: 600;
+}
+.type-foundation { background: #dbeafe; color: #1e40af; }
+.type-frontier { background: var(--frontier-light); color: var(--frontier); }
+.type-recommended { background: #fef3c7; color: #92400e; }
+
+/* ── Resources ── */
+.resources-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.resource-section { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+.resource-section-title {
+  font-size: 13px; font-weight: 700; color: var(--text-muted);
+  letter-spacing: 1px; margin-bottom: 14px; display: flex; align-items: center; gap: 6px;
+}
+.resource-item { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.resource-item:last-child { border-bottom: none; padding-bottom: 0; }
+.resource-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.resource-name a { color: var(--text); text-decoration: none; }
+.resource-name a:hover { color: var(--primary); }
+.resource-meta { font-size: 12px; color: var(--text-muted); display: flex; gap: 8px; }
+.stars { color: var(--warning); }
+
+/* ── Top Authors / Labs ── */
+.authors-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.author-card {
+  background: var(--card); border-radius: var(--radius); padding: 16px 20px;
+  box-shadow: var(--shadow); display: flex; align-items: flex-start; gap: 12px;
+  transition: all 0.2s;
+}
+.author-card:hover { box-shadow: var(--shadow-hover); }
+.author-rank {
+  flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--frontier));
+  color: white; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+}
+.author-body { flex: 1; min-width: 0; }
+.author-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+.author-name a { color: var(--text); text-decoration: none; }
+.author-name a:hover { color: var(--primary); }
+.author-institution { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+.author-recent { font-size: 12px; color: var(--text-muted); font-style: italic; line-height: 1.5; }
+.author-count {
+  flex-shrink: 0; text-align: center;
+  font-size: 18px; font-weight: 700; color: var(--primary); line-height: 1.1;
+}
+.author-count span { display: block; font-size: 10px; font-weight: 400; color: var(--text-muted); }
+.authors-placeholder {
+  text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px;
+  border: 2px dashed var(--border); border-radius: var(--radius);
+}
+
+/* ── View Panels (最新动态 / 我的笔记) ── */
+.view-panel {
+  display: none; max-width: 1100px; margin: 0 auto; padding: 32px;
+}
+.view-panel.active { display: block; }
+
+/* Latest Updates */
+.updates-placeholder {
+  text-align: center; padding: 80px 32px; color: var(--text-muted);
+}
+.updates-placeholder-icon { font-size: 3rem; margin-bottom: 16px; }
+.updates-placeholder-text {
+  font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; color: var(--text);
+}
+.updates-placeholder-hint {
+  font-size: 14px; line-height: 1.7;
+  background: var(--primary-light); border-radius: var(--radius);
+  padding: 16px 24px; display: inline-block; text-align: left; max-width: 480px;
+}
+.updates-placeholder-hint code {
+  background: white; padding: 2px 6px; border-radius: 4px;
+  font-family: monospace; font-size: 13px; color: var(--primary);
+}
+.update-batch { margin-bottom: 32px; }
+.update-batch-header {
+  font-size: 12px; font-weight: 700; color: var(--text-muted); letter-spacing: 1px;
+  text-transform: uppercase; margin-bottom: 12px; padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.update-item {
+  background: var(--card); border-radius: var(--radius); padding: 16px 20px;
+  box-shadow: var(--shadow); margin-bottom: 10px; border-left: 3px solid var(--frontier);
+  transition: all 0.2s;
+}
+.update-item:hover { box-shadow: var(--shadow-hover); }
+.update-date { font-size: 11px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px; margin-bottom: 4px; }
+.update-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.update-title a { color: var(--text); text-decoration: none; }
+.update-title a:hover { color: var(--frontier); }
+.update-summary { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+/* ── Chat Panel (智能助手) ── */
+.chat-panel { max-width: 860px; }
+.chat-server-hint {
+  font-size: 12px; color: var(--text-muted); margin-bottom: 16px;
+  background: var(--primary-light); border-radius: 8px; padding: 10px 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.chat-server-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; flex-shrink: 0;
+  transition: background 0.3s;
+}
+.chat-server-dot.online { background: var(--social); box-shadow: 0 0 0 3px #bbf7d0; }
+.chat-messages {
+  min-height: 380px; max-height: 480px; overflow-y: auto;
+  background: var(--bg); border-radius: var(--radius);
+  border: 1px solid var(--border); padding: 20px; margin-bottom: 12px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.chat-welcome {
+  text-align: center; color: var(--text-muted); padding: 40px 20px;
+  font-size: 14px; line-height: 2;
+}
+.chat-welcome-icon { font-size: 2.5rem; margin-bottom: 10px; }
+.chat-msg {
+  display: flex; gap: 10px; max-width: 85%;
+}
+.chat-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+.chat-msg.agent { align-self: flex-start; }
+.chat-avatar {
+  flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.chat-msg.user .chat-avatar { background: var(--primary); }
+.chat-msg.agent .chat-avatar { background: linear-gradient(135deg, var(--frontier), var(--primary)); }
+.chat-bubble {
+  padding: 10px 14px; border-radius: 16px; font-size: 13px; line-height: 1.7;
+  white-space: pre-wrap; word-break: break-word;
+}
+.chat-msg.user .chat-bubble {
+  background: var(--primary); color: white; border-top-right-radius: 4px;
+}
+.chat-msg.agent .chat-bubble {
+  background: var(--card); color: var(--text); border-top-left-radius: 4px;
+  border: 1px solid var(--border); box-shadow: var(--shadow);
+}
+.chat-bubble.thinking {
+  color: var(--text-muted); font-style: italic;
+  display: flex; align-items: center; gap: 8px;
+}
+.chat-bubble.action-done {
+  border-left: 3px solid var(--social);
+}
+.thinking-dots { display: flex; gap: 4px; }
+.thinking-dots span {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted);
+  animation: dot-bounce 1.2s infinite;
+}
+.thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+.thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: scale(0.8); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+.chat-refresh-hint {
+  margin-top: 8px; font-size: 12px; color: var(--social);
+  background: #f0fdf4; border-radius: 8px; padding: 8px 12px;
+  display: none;
+}
+.chat-quickactions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.chat-chip {
+  font-size: 12px; padding: 5px 12px; border-radius: 16px; cursor: pointer;
+  background: var(--card); border: 1px solid var(--border); color: var(--text-muted);
+  transition: all 0.15s; white-space: nowrap;
+}
+.chat-chip:hover {
+  background: var(--primary-light); border-color: var(--primary); color: var(--primary);
+}
+.chat-input-row {
+  display: flex; gap: 8px; align-items: flex-end;
+}
+.chat-input {
+  flex: 1; min-height: 44px; max-height: 120px;
+  border: 1px solid var(--border); border-radius: 12px;
+  padding: 10px 14px; font-size: 14px; line-height: 1.5; resize: none;
+  background: var(--card); color: var(--text); transition: border-color 0.2s;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+}
+.chat-input:focus {
+  outline: none; border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+.btn {
+  padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  cursor: pointer; border: none; transition: all 0.2s;
+}
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+.btn-primary:disabled { background: #93c5fd; transform: none; cursor: not-allowed; }
+.chat-send-btn {
+  flex-shrink: 0; width: 44px; height: 44px; border-radius: 12px; padding: 0;
+  background: var(--primary); color: white; border: none; cursor: pointer;
+  font-size: 18px; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.chat-send-btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+.chat-send-btn:disabled { background: #93c5fd; transform: none; cursor: not-allowed; }
+
+/* ── Social Actions Timeline ── */
+.social-timeline { display: flex; flex-direction: column; gap: 12px; }
+.social-action {
+  display: flex; align-items: flex-start; gap: 14px;
+  background: var(--card); border-radius: var(--radius); padding: 14px 18px;
+  box-shadow: var(--shadow); transition: all 0.2s;
+}
+.social-action:hover { box-shadow: var(--shadow-hover); }
+.social-dot {
+  flex-shrink: 0; width: 12px; height: 12px; border-radius: 50%; margin-top: 4px;
+}
+.social-dot.done, .social-dot.followed { background: var(--social); box-shadow: 0 0 0 3px #bbf7d0; }
+.social-dot.ready { background: var(--warning); box-shadow: 0 0 0 3px #fde68a; }
+.social-dot.skipped { background: #94a3b8; }
+.social-dot.demo { background: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+.social-body { flex: 1; min-width: 0; }
+.social-time {
+  font-size: 11px; color: var(--text-muted); font-weight: 600;
+  letter-spacing: 0.5px; margin-bottom: 3px;
+}
+.social-summary { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.social-reason { font-size: 12px; color: var(--text-muted); }
+.social-actions-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.social-btn {
+  font-size: 12px; padding: 4px 12px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--bg);
+  color: var(--social); cursor: pointer; font-weight: 500; transition: all 0.15s;
+  text-decoration: none; display: inline-block;
+}
+.social-btn:hover { background: var(--social-light); border-color: var(--social); }
+.social-btn.primary {
+  background: var(--social); color: white; border-color: var(--social);
+}
+.social-btn.primary:hover { background: #047857; }
+.social-status-tag {
+  flex-shrink: 0; font-size: 10px; padding: 2px 8px; border-radius: 6px; font-weight: 600;
+  margin-top: 2px; white-space: nowrap;
+}
+.tag-done, .tag-followed { background: #dcfce7; color: #166534; }
+.tag-ready { background: #fef3c7; color: #854d0e; }
+.tag-skipped { background: #f1f5f9; color: #64748b; }
+.tag-demo { background: var(--primary-light); color: var(--primary); }
+.social-draft-box {
+  margin-top: 8px; background: var(--bg); border-radius: 8px; padding: 10px 14px;
+  border-left: 3px solid var(--warning); font-size: 13px; color: var(--text);
+  line-height: 1.6;
+}
+
+/* ── Footer ── */
+.footer {
+  text-align: center; padding: 32px; color: var(--text-muted); font-size: 12px;
+  border-top: 1px solid var(--border); margin-top: 48px;
+}
+
+/* ── Smooth scroll ── */
+html { scroll-behavior: smooth; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="logo">✦ FRONTIERPILOT · 成长型知识库</div>
+    <h1>📍 Multimodal Model Distributed Training Optimization 知识库</h1>
+    <div class="header-sub">多模态模型分布式训练优化 · 由 FrontierPilot Agent 持续维护</div>
+    <div class="badges">
+      <span class="badge">📚 7 篇奠基论文</span>
+      <span class="badge">🔬 7 篇前沿论文</span>
+      <span class="badge">📋 10 篇阅读清单</span>
+      <span class="badge">🌐 多平台资源</span>
+      
+      <span class="badge">⏱️ 2026-03-17 09:03</span>
+    </div>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="nav-item active" href="#overview" onclick="showMain(event, 'overview')">📊 领域概况</a>
+    <a class="nav-item" href="#graph" onclick="showMain(event, 'graph')">🗺️ 知识图谱</a>
+    <a class="nav-item" href="#foundation" onclick="showMain(event, 'foundation')">📚 基础 Roadmap</a>
+    <a class="nav-item" href="#frontier" onclick="showMain(event, 'frontier')">🔬 前沿快照</a>
+    <a class="nav-item" href="#reading" onclick="showMain(event, 'reading')">📋 阅读清单</a>
+    <a class="nav-item" href="#resources" onclick="showMain(event, 'resources')">🌐 资源地图</a>
+    <a class="nav-item" href="#authors" onclick="showMain(event, 'authors')">🏛️ 领域强组</a>
+    <a class="nav-item panel-tab" href="#" onclick="showPanel(event, 'panel-updates')">📰 最新动态</a>
+    <a class="nav-item panel-tab" href="#" onclick="showPanel(event, 'panel-social');loadPendingActions()">🌐 社交行动</a>
+    <a class="nav-item panel-tab" href="#" onclick="showPanel(event, 'panel-heatmap')">📊 评审共识</a>
+    <a class="nav-item panel-tab" href="#" onclick="showPanel(event, 'panel-chat')">🤖 智能助手</a>
+  </div>
+</nav>
+
+<!-- ── 最新动态 Panel ── -->
+<div id="panel-updates" class="view-panel">
+  <div class="section-header">
+    <span class="section-icon">📰</span>
+    <span class="section-title">最新动态</span>
+    <span class="section-count">0 条更新</span>
+  </div>
+    <div class="updates-placeholder">
+    <div class="updates-placeholder-icon">🔔</div>
+    <div class="updates-placeholder-text">OpenClaw 将定期监测最新动态</div>
+    <div class="updates-placeholder-hint">
+      当有新论文发表时，内容将自动追加到此处。<br><br>
+      触发方式：在 OpenClaw 中输入<br>
+      <code>帮我更新 [topic] 的最新动态</code>
+    </div>
+  </div>
+</div>
+
+<!-- ── 社交行动 Panel ── -->
+<div id="panel-social" class="view-panel">
+  <div class="section-header">
+    <span class="section-icon">🌐</span>
+    <span class="section-title">社交行动</span>
+    <span class="section-count">0 次操作</span>
+    <span style="font-size:12px;color:var(--text-muted);margin-left:auto">FrontierPilot 帮你进圈子</span>
+  </div>
+
+  <!-- 待审批行动队列 (P1) -->
+  <div id="pendingActionsSection" style="display:none;padding:0 0 16px 0;">
+    <h3 style="color:#059669;margin-bottom:12px;font-size:15px;">⏳ 待审批行动</h3>
+    <div id="pendingActionsList"></div>
+  </div>
+
+    <div class="updates-placeholder">
+    <div class="updates-placeholder-icon">🌐</div>
+    <div class="updates-placeholder-text">社交代理尚未运行</div>
+    <div class="updates-placeholder-hint">
+      在 OpenClaw 中输入<br>
+      <code>帮我在小红书找 [topic] 领域专家并关注</code>
+    </div>
+  </div>
+</div>
+
+<!-- ── 评审共识 Panel (P2) ── -->
+<div id="panel-heatmap" class="view-panel">
+  <div class="section-header">
+    <span class="section-icon">📊</span>
+    <span class="section-title">审稿人共识分析</span>
+  </div>
+  <p style="color:var(--text-muted);margin-bottom:24px;font-size:13px;">基于 OpenReview 真实评审数据，分析各论文的评分分布与审稿人共识度。标准差越低代表意见越统一，越高说明存在争议。</p>
+
+  <div style="overflow-x:auto;margin-bottom:32px;">
+    <table style="border-collapse:collapse;width:100%;font-size:14px;">
+      <thead>
+        <tr style="background:#f8fafc;">
+          <th style="text-align:left;padding:10px 16px;border-bottom:2px solid #e5e7eb;">论文</th>
+          <th style="padding:10px 16px;border-bottom:2px solid #e5e7eb;">均分</th>
+          <th style="padding:10px 16px;border-bottom:2px solid #e5e7eb;">标准差</th>
+          <th style="padding:10px 16px;border-bottom:2px solid #e5e7eb;">评分分布</th>
+          <th style="padding:10px 16px;border-bottom:2px solid #e5e7eb;">共识度</th>
+        </tr>
+      </thead>
+      <tbody id="heatmapTableBody"></tbody>
+    </table>
+  </div>
+
+  <h3 style="color:#374151;margin-bottom:16px;font-size:15px;">🔍 审稿人关注的核心主题</h3>
+  <div id="themeClusterGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;"></div>
+</div>
+
+<!-- ── 智能助手 Panel ── -->
+<div id="panel-chat" class="view-panel">
+  <div class="chat-panel">
+    <div class="section-header">
+      <span class="section-icon">🤖</span>
+      <span class="section-title">智能助手 · Multimodal Model Distributed Training Optimization</span>
+    </div>
+
+    <div class="chat-server-hint">
+      <div id="chat-dot" class="chat-server-dot"></div>
+      <span id="chat-status-text">正在连接 OpenClaw 助手（localhost:7779）…</span>
+    </div>
+
+    <div id="chat-messages" class="chat-messages">
+      <div class="chat-welcome">
+        <div class="chat-welcome-icon">🤖</div>
+        你好！我是 FrontierPilot 智能助手，由 OpenClaw 驱动。<br>
+        你可以让我更新知识库、添加论文、分析最新进展。<br><br>
+        <span style="font-size:12px;color:var(--text-muted)">试试下面的快捷指令 ↓</span>
+      </div>
+    </div>
+
+    <div id="chat-refresh-hint" class="chat-refresh-hint">
+      ✅ 知识库已更新！<a href="javascript:location.reload()" style="color:var(--social);font-weight:600;margin-left:4px">点击刷新页面</a>查看最新内容
+    </div>
+
+    <div class="chat-quickactions">
+      <span class="chat-chip" onclick="fillInput('更新 Multimodal Model Distributed Training Optimization 的最新动态')">🔄 更新最新动态</span>
+      <span class="chat-chip" onclick="fillInput('把这篇论文添加到知识图谱：')">➕ 添加论文</span>
+      <span class="chat-chip" onclick="fillInput('分析 arXiv 论文：')">🔍 分析 arXiv 论文</span>
+      <span class="chat-chip" onclick="fillInput('推荐 Multimodal Model Distributed Training Optimization 方向的入门阅读路径')">📚 入门路径推荐</span>
+    </div>
+
+    <div class="chat-input-row">
+      <textarea id="chat-input" class="chat-input" rows="1"
+        placeholder="输入指令，例如：把 Stable Diffusion 3 添加到知识图谱…"></textarea>
+      <button id="chat-send-btn" class="chat-send-btn" onclick="sendChat()">↑</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Main View ── -->
+<div id="view-main" class="container">
+
+  <!-- Field Overview -->
+  <section class="section" id="overview">
+    <div class="section-header">
+      <span class="section-icon">📊</span>
+      <span class="section-title">领域全景 · 专家视角导读</span>
+    </div>
+        <div class="overview-card">
+      <div class="overview-text"><p style='margin-bottom:12px'>多模态模型分布式训练优化的核心问题一句话：如何在有限 GPU 资源下，高效训练同时处理文本、图像、视频等多模态数据的大模型。</p><p style='margin-bottom:12px'>这个领域本质上是两个成熟领域的交叉产物：大语言模型（LLM）的分布式训练技术（已较成熟），和多模态模型的新挑战（数据异构性、模态对齐）。当前主流并行策略——数据并行（DP）、张量并行（TP）、流水线并行（PP）——来自 Megatron-LM 和 DeepSpeed 等框架，但直接套用到多模态场景会遇到严重的负载不均衡问题：不同模态数据的序列长度、计算密度差异巨大，导致静态并行策略下的硬件利用率极低。</p><p style='margin-bottom:12px'>2023-2024年的主要共识是：混合并行 + 通信计算重叠是必经之路。DeepSpeed ZeRO 系列通过优化器状态分片把内存效率推到极致；Megatron-LM 的序列并行和上下文并行解决了长序列训练问题；ColossalAI 的异构内存管理让消费级 GPU 也能参与训练。同时，通信压缩（1-bit Adam, ScaleCom, Optimus-CC）和动态并行策略（DHP, Merak）正在成为新的前沿方向。</p><p style='margin-bottom:12px'>当前主要争议/开放问题包括：(1) 多模态数据的动态负载均衡——静态划分 vs 运行时自适应重配置；(2) 异构集群上的高效训练——SWARM Parallelism 等探索了在慢速、不稳定网络下的训练可能性；(3) 自动并行搜索——Galvatron、Merak 等框架试图让系统自动找到最优并行策略，但搜索开销仍是瓶颈。</p><p style='margin-bottom:12px'>新手最应该优先关注两个方向：第一，彻底理解 ZeRO 三阶段（参数/梯度/优化器状态分片）的内存和通信 trade-off，这是所有现代分布式训练的基础；第二，掌握 Megatron-LM 的 3D 并行（DP×TP×PP），特别是流水线调度策略（1F1B vs Interleaved）对多模态模型的影响。</p></div>
+    </div>
+  </section>
+
+  <!-- Knowledge Graph -->
+  <section class="section" id="graph">
+    <div class="section-header">
+      <span class="section-icon">🗺️</span>
+      <span class="section-title">领域知识图谱</span>
+    </div>
+    <div class="graph-card">
+      <div class="mermaid">
+flowchart LR
+  classDef foundation fill:#dbeafe,stroke:#2563eb,color:#1e40af
+  classDef key fill:#2563eb,stroke:#1e40af,color:white
+  classDef frontier fill:#f5f3ff,stroke:#7c3aed,color:#4c1d95
+  classDef auto fill:#f0fdf4,stroke:#059669,color:#14532d
+
+  subgraph sg1[🔵 并行策略]
+    style sg1 fill:#eff6ff,stroke:#2563eb
+    N2019_Megatron["2019 Megatron-LM\n⭐4200"]:::key
+    N2020_ZeRO["2020 ZeRO\n⭐3100"]:::key
+    N2022_MT_NLG["2022 MT-NLG 530B\n⭐1200"]:::foundation
+    N2023_SWARM["2023 SWARM\n⭐59"]:::foundation
+  end
+
+  subgraph sg2[🟢 自动并行搜索]
+    style sg2 fill:#f0fdf4,stroke:#059669
+    N2022_Merak["2022 Merak\n⭐64"]:::foundation
+    N2026_DHP["2026 DHP\n🆕"]:::frontier
+  end
+
+  subgraph sg3[🟣 通信优化]
+    style sg3 fill:#faf5ff,stroke:#7c3aed
+    N2021_1bitAdam["2021 1-bit Adam\n⭐103"]:::foundation
+    N2021_ScaleCom["2021 ScaleCom\n⭐76"]:::foundation
+    N2023_OptimusCC["2023 Optimus-CC\n⭐41"]:::foundation
+    N2024_Centauri["2024 Centauri\n⭐63"]:::frontier
+  end
+
+  subgraph sg4[🟡 内存效率]
+    style sg4 fill:#fefce8,stroke:#ca8a04
+    N2021_ZeRO_Inf["2021 ZeRO-Infinity\n⭐950"]:::foundation
+    N2024_LoongTrain["2024 LoongTrain\n⭐19"]:::frontier
+  end
+
+  N2019_Megatron --> N2020_ZeRO
+  N2020_ZeRO --> N2022_MT_NLG
+  N2020_ZeRO --> N2021_ZeRO_Inf
+  N2019_Megatron --> N2022_Merak
+  N2020_ZeRO --> N2023_SWARM
+  N2021_1bitAdam --> N2023_OptimusCC
+  N2022_MT_NLG --> N2026_DHP
+  N2024_Centauri --> N2024_LoongTrain
+  click N2020_ZeRO call showPaperTooltip("N2020_ZeRO")
+  click N2022_Merak call showPaperTooltip("N2022_Merak")
+  click N2019_Megatron call showPaperTooltip("N2019_Megatron")
+  click N2021_1bitAdam call showPaperTooltip("N2021_1bitAdam")
+  click N2021_ScaleCom call showPaperTooltip("N2021_ScaleCom")
+  click N2021_ZeRO_Inf call showPaperTooltip("N2021_ZeRO_Inf")
+  click N2022_MT_NLG call showPaperTooltip("N2022_MT_NLG")
+  click N2023_OptimusCC call showPaperTooltip("N2023_OptimusCC")
+  click N2023_SWARM call showPaperTooltip("N2023_SWARM")
+  click N2024_Centauri call showPaperTooltip("N2024_Centauri")
+  click N2024_LoongTrain call showPaperTooltip("N2024_LoongTrain")
+  click N2026_DHP call showPaperTooltip("N2026_DHP")
+      </div>
+    </div>
+    <!-- Paper tooltip overlay -->
+    <div id="paperTooltip" style="display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);
+         z-index:1000;background:white;border:1px solid #e5e7eb;border-radius:12px;
+         box-shadow:0 20px 60px rgba(0,0,0,0.15);padding:24px;max-width:480px;width:90%;">
+      <button onclick="closePaperTooltip()" style="position:absolute;top:12px;right:16px;
+        background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280;">&times;</button>
+      <div id="tooltipTitle" style="font-weight:700;font-size:18px;color:#1e1e1e;margin-bottom:8px;padding-right:24px;"></div>
+      <div id="tooltipMeta" style="color:#6b7280;font-size:13px;margin-bottom:12px;"></div>
+      <div id="tooltipAbstract" style="color:#374151;font-size:14px;line-height:1.6;margin-bottom:16px;max-height:120px;overflow-y:auto;"></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button id="tooltipExpandBtn" onclick="expandFromNode(currentTooltipNodeId)"
+          style="background:#2563eb;color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:14px;">
+          Expand
+        </button>
+        <a id="tooltipLink" href="#" target="_blank"
+          style="background:#f3f4f6;color:#374151;border:none;border-radius:8px;padding:8px 16px;
+                 text-decoration:none;font-size:14px;display:inline-flex;align-items:center;">
+          Paper
+        </a>
+        <button onclick="chatAboutPaper(currentTooltipNodeId)"
+          style="background:#059669;color:white;border:none;border-radius:8px;padding:8px 16px;cursor:pointer;font-size:14px;">
+          Ask AI
+        </button>
+      </div>
+      <div id="tooltipExpandStatus" style="margin-top:12px;font-size:13px;color:#2563eb;display:none;"></div>
+    </div>
+    <div id="tooltipOverlay" onclick="closePaperTooltip()"
+      style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:999;"></div>
+    <div id="graphExpansionList" style="display:none;margin-top:24px;padding:16px;background:#f0fdf4;border-radius:8px;">
+      <h3 style="color:#059669;margin-bottom:12px;">Discovered Similar Papers</h3>
+      <div id="expandedPapersList"></div>
+    </div>
+  </section>
+
+  <!-- Foundation -->
+  <section class="section" id="foundation">
+    <div class="section-header">
+      <span class="section-icon">📚</span>
+      <span class="section-title">基础 Roadmap · 领域演进</span>
+      <span class="section-count">7 个节点</span>
+    </div>
+    <div class="timeline">
+      <div class="timeline-item key">
+        <div class="timeline-card key">
+          <div class="timeline-year">2019</div>
+          <div class="timeline-title"><a href="https://arxiv.org/abs/1909.08053" target="_blank">Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism</a><span class="key-badge">必读</span></div>
+          <div class="timeline-meta">Mohammad Shoeybi, Mostofa Patwary, Raul Puri, Patrick LeGresley, Jared Casper, Bryan Catanzaro</div>
+          <div style="font-size:13px;color:var(--text-muted)">提出张量并行（Tensor Parallelism），将单个 Transformer 层切分到多个 GPU 上，成为后续所有分布式训练框架的基石。</div>
+          <div class="timeline-pills"><span class="pill pill-solved">✅ 单 GPU 内存无法容纳超大模型的参数和激活值</span><span class="pill pill-left">⚠️ 遗留：仅支持层内并行，对流水线并行和数据并行的整合不够</span><span class="pill pill-cite">⭐ 4k 引用</span></div>
+        </div>
+      </div>
+      <div class="timeline-item key">
+        <div class="timeline-card key">
+          <div class="timeline-year">2020</div>
+          <div class="timeline-title"><a href="https://arxiv.org/abs/1910.02054" target="_blank">ZeRO: Memory Optimizations Toward Training Trillion Parameter Models</a><span class="key-badge">必读</span></div>
+          <div class="timeline-meta">Samyam Rajbhandari, Jeff Rasley, Olatunji Ruwase, Yuxiong He</div>
+          <div style="font-size:13px;color:var(--text-muted)">DeepSpeed 的核心：通过分片优化器状态、梯度和参数，将内存消耗从 O(N) 降到 O(N/k)，k 为 GPU 数量。</div>
+          <div class="timeline-pills"><span class="pill pill-solved">✅ 数据并行中的冗余内存占用——每个 GPU 都持有完整模型副本</span><span class="pill pill-left">⚠️ 遗留：ZeRO-3 的参数收集在前向传播时引入额外通信开销</span><span class="pill pill-cite">⭐ 3k 引用</span></div>
+        </div>
+      </div>
+      <div class="timeline-item key">
+        <div class="timeline-card key">
+          <div class="timeline-year">2022</div>
+          <div class="timeline-title"><a href="https://arxiv.org/abs/2201.11990" target="_blank">Using DeepSpeed and Megatron to Train Megatron-Turing NLG 530B</a><span class="key-badge">必读</span></div>
+          <div class="timeline-meta">Shaden Smith, Mostofa Patwary, Brandon Norick, Patrick LeGresley, Samyam Rajbhandari, Jared Casper, Zhun Liu, Shrimai Prabhumoye, George Zerveas, Vijay Korthikanti, Elton Zhang, Rewon Child, Reza Yazdani Aminabadi, Julie Bernauer, Xia Song, Mohammad Shoeybi, Yuxiong He, Michael Houston, Saurabh Tiwary, Bryan Catanzaro</div>
+          <div style="font-size:13px;color:var(--text-muted)">首次将 Megatron-LM 的 TP/PP 与 DeepSpeed 的 ZeRO-3 结合，成功训练 530B 参数模型的工业级实践。</div>
+          <div class="timeline-pills"><span class="pill pill-solved">✅ 如何在数千 GPU 上训练千亿参数模型并保持高 MFU</span><span class="pill pill-left">⚠️ 遗留：流水线并行的气泡问题仍然显著，且不支持动态调整</span><span class="pill pill-cite">⭐ 1k 引用</span></div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-card">
+          <div class="timeline-year">2021</div>
+          <div class="timeline-title"><a href="https://arxiv.org/abs/2104.07857" target="_blank">ZeRO-Infinity: Breaking the GPU Memory Wall for Extreme Scale Deep Learning</a></div>
+          <div class="timeline-meta">Samyam Rajbhandari, Olatunji Ruwase, Jeff Rasley, Shaden Smith, Yuxiong He</div>
+          <div style="font-size:13px;color:var(--text-muted)">ZeRO 的终极扩展：利用 CPU 内存和 NVMe SSD，让单个 GPU 能训练任意大小的模型。</div>
+          <div class="timeline-pills"><span class="pill pill-solved">✅ GPU 显存成为大模型训练的硬性限制</span><span class="pill pill-left">⚠️ 遗留：CPU/SSD 到 GPU 的数据搬移延迟在高吞吐训练中仍显著</span><span class="pill pill-cite">⭐ 950 引用</span></div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-card">
+          <div class="timeline-year">2022</div>
+          <div class="timeline-title"><a href="https://arxiv.org/abs/2206.04959" target="_blank">Merak: An Efficient Distributed DNN Training Framework with Automated 3D Parallelism for Giant Foundation Models</a></div>
+          <div class="timeline-meta">Zhiquan Lai, Shengwei Li, Xudong Tang</div>
+          <div style="font-size:13px;color:var(--text-muted)">自动化 3D 并行框架：通过图切分算法自动为模型分配最优的 DP/TP/PP 策略，用户无需手动修改代码。</div>
+          <div class="timeline-pills"><span class="pill pill-solved">✅ 3D 并行的配置空间巨大，手动调参成本极高</span><span class="pill pill-left">⚠️ 遗留：自动搜索在超大规模集群上的开销仍然较高</span><span class="pill pill-cite">⭐ 64 引用</span></div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-card">
+          <div class="timeline-year">2023</div>
+          <div class="timeline-title"><a href="https://arxiv.org/abs/2301.11913" target="_blank">SWARM Parallelism: Training Large Models Can Be Surprisingly Communication-Efficient</a></div>
+          <div class="timeline-meta">Max Ryabinin, Tim Dettmers, Michael Diskin, Alexander Borzunov</div>
+          <div style="font-size:13px;color:var(--text-muted)">面向异构、不可靠设备的模型并行算法：通过随机化流水线和故障重平衡，在慢速网络上也能训练大模型。</div>
+          <div class="timeline-pills"><span class="pill pill-solved">✅ 传统并行策略假设高速互联网络，在消费级硬件/跨区域场景下效率极低</span><span class="pill pill-left">⚠️ 遗留：随机化调度的收敛速度和稳定性分析不够完善</span><span class="pill pill-cite">⭐ 59 引用</span></div>
+        </div>
+      </div>
+      <div class="timeline-item key">
+        <div class="timeline-card key">
+          <div class="timeline-year">2024</div>
+          <div class="timeline-title"><a href="https://arxiv.org/abs/2407.20018" target="_blank">Efficient Training of Large Language Models on Distributed Infrastructures: A Survey</a><span class="key-badge">必读</span></div>
+          <div class="timeline-meta">Jiangfei Duan, Shuo Zhang, Zerui Wang, Lijuan Jiang, Wenwen Qu, Qinghao Hu, Guoteng Wang, Qizhen Weng, Hang Yan, Xingcheng Zhang, Xipeng Qiu, Dahua Lin, Yonggang Wen, Xin Jin, Tianwei Zhang, Peng Sun</div>
+          <div style="font-size:13px;color:var(--text-muted)">全面综述 LLM 分布式训练：覆盖并行策略、计算/通信/内存优化、系统可靠性。</div>
+          <div class="timeline-pills"><span class="pill pill-solved">✅ 该领域缺乏系统的综合性参考</span><span class="pill pill-left">⚠️ 遗留：综述本身不提出新方法</span><span class="pill pill-cite">⭐ 43 引用</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Frontier -->
+  <section class="section" id="frontier">
+    <div class="section-header">
+      <span class="section-icon">🔬</span>
+      <span class="section-title">前沿快照 · 同行评审视角</span>
+      <span class="section-count">7 篇论文</span>
+    </div>
+    <div class="frontier-grid">
+      <div class="frontier-card">
+        <div class="frontier-card-header">
+          <div class="frontier-title"><a href="https://arxiv.org/abs/2602.21788" target="_blank">DHP: Efficient Scaling of MLLM Training with Dynamic Hybrid Parallelism</a>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">arXiv 2026 2026</div>
+          </div>
+          <div class="rating-badge ">⭐ N/A</div>
+        </div>
+        <div class="reviews-wrap">
+
+        </div>
+      </div>
+      <div class="frontier-card">
+        <div class="frontier-card-header">
+          <div class="frontier-title"><a href="https://arxiv.org/abs/2406.18485" target="_blank">LoongTrain: Efficient Training of Long-Sequence LLMs with Head-Context Parallelism</a>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">arXiv 2024 2024</div>
+          </div>
+          <div class="rating-badge cite">⭐ 19 citations</div>
+        </div>
+        <div class="reviews-wrap">
+
+        </div>
+      </div>
+      <div class="frontier-card">
+        <div class="frontier-card-header">
+          <div class="frontier-title"><a href="https://dl.acm.org/doi/10.1145/3620666.3651337" target="_blank">Centauri: Enabling Efficient Scheduling for Communication-Computation Overlap in Large Model Training</a>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">ASPLOS 2024 2024</div>
+          </div>
+          <div class="rating-badge cite">⭐ 63 citations</div>
+        </div>
+        <div class="reviews-wrap">
+
+        </div>
+      </div>
+      <div class="frontier-card">
+        <div class="frontier-card-header">
+          <div class="frontier-title"><a href="https://arxiv.org/abs/2301.09830" target="_blank">Optimus-CC: Efficient Large NLP Model Training with 3D Parallelism Aware Communication Compression</a>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">ASPLOS 2023 2023</div>
+          </div>
+          <div class="rating-badge cite">⭐ 41 citations</div>
+        </div>
+        <div class="reviews-wrap">
+
+        </div>
+      </div>
+      <div class="frontier-card">
+        <div class="frontier-card-header">
+          <div class="frontier-title"><a href="https://arxiv.org/abs/2102.02888" target="_blank">1-bit Adam: Communication Efficient Large-Scale Training with Adam's Convergence Speed</a>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">ICML 2021 2021</div>
+          </div>
+          <div class="rating-badge cite">⭐ 103 citations</div>
+        </div>
+        <div class="reviews-wrap">
+
+        </div>
+      </div>
+      <div class="frontier-card">
+        <div class="frontier-card-header">
+          <div class="frontier-title"><a href="https://arxiv.org/abs/2104.11125" target="_blank">ScaleCom: Scalable Sparsified Gradient Compression for Communication-Efficient Distributed Training</a>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">NeurIPS 2021 2021</div>
+          </div>
+          <div class="rating-badge cite">⭐ 76 citations</div>
+        </div>
+        <div class="reviews-wrap">
+
+        </div>
+      </div>
+      <div class="frontier-card">
+        <div class="frontier-card-header">
+          <div class="frontier-title"><a href="https://arxiv.org/abs/2401.XXXXX" target="_blank">Communication-Efficient Large-Scale Distributed Deep Learning: A Comprehensive Survey</a>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">arXiv 2024 2024</div>
+          </div>
+          <div class="rating-badge cite">⭐ 27 citations</div>
+        </div>
+        <div class="reviews-wrap">
+
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Reading List -->
+  <section class="section" id="reading">
+    <div class="section-header">
+      <span class="section-icon">📋</span>
+      <span class="section-title">精选阅读清单</span>
+      <span class="section-count">10 篇</span>
+    </div>
+    <div class="reading-list">
+      <div class="reading-item">
+        <div class="reading-num">1</div>
+        <div class="reading-body">
+          <div class="reading-title"><a href="https://arxiv.org/abs/1910.02054" target="_blank">ZeRO: Memory Optimizations Toward Training Trillion Parameter Models</a></div>
+          <div class="reading-reason">理解所有现代分布式训练框架的内存分片基础</div>
+        </div>
+        <span class="reading-type type-foundation">基础</span>
+      </div>
+      <div class="reading-item">
+        <div class="reading-num">2</div>
+        <div class="reading-body">
+          <div class="reading-title"><a href="https://arxiv.org/abs/1909.08053" target="_blank">Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism</a></div>
+          <div class="reading-reason">张量并行的开山之作，所有 TP 实现的源头</div>
+        </div>
+        <span class="reading-type type-foundation">基础</span>
+      </div>
+      <div class="reading-item">
+        <div class="reading-num">3</div>
+        <div class="reading-body">
+          <div class="reading-title"><a href="https://arxiv.org/abs/2201.11990" target="_blank">Using DeepSpeed and Megatron to Train Megatron-Turing NLG 530B</a></div>
+          <div class="reading-reason">工业级大规模训练的综合实践案例</div>
+        </div>
+        <span class="reading-type type-foundation">基础</span>
+      </div>
+      <div class="reading-item">
+        <div class="reading-num">4</div>
+        <div class="reading-body">
+          <div class="reading-title"><a href="https://arxiv.org/abs/2407.20018" target="_blank">Efficient Training of LLMs on Distributed Infrastructures: A Survey</a></div>
+          <div class="reading-reason">最新的综述，快速了解全貌</div>
+        </div>
+        <span class="reading-type type-foundation">基础</span>
+      </div>
+      <div class="reading-item">
+        <div class="reading-num">5</div>
+        <div class="reading-body">
+          <div class="reading-title"><a href="https://arxiv.org/abs/2602.21788" target="_blank">DHP: Efficient Scaling of MLLM Training with Dynamic Hybrid Parallelism</a></div>
+          <div class="reading-reason">2026年最新，直接解决多模态训练的负载均衡问题</div>
+        </div>
+        <span class="reading-type type-frontier">前沿</span>
+      </div>
+      <div class="reading-item">
+        <div class="reading-num">6</div>
+        <div class="reading-body">
+          <div class="reading-title"><a href="https://arxiv.org/abs/2406.18485" target="_blank">LoongTrain: Efficient Training of Long-Sequence LLMs with Head-Context Parallelism</a></div>
+          <div class="reading-reason">序列并行的最新进展，对多模态长上下文训练有直接参考价值</div>
+        </div>
+        <span class="reading-type type-frontier">前沿</span>
+      </div>
+      <div class="reading-item">
+        <div class="reading-num">7</div>
+        <div class="reading-body">
+          <div class="reading-title"><a href="https://dl.acm.org/doi/10.1145/3620666.3651337" target="_blank">Centauri: Communication-Computation Overlap in Large Model Training</a></div>
+          <div class="reading-reason">ASPLOS 2024 系统顶会论文，通信-计算重叠的最优调度</div>
+        </div>
+        <span class="reading-type type-frontier">前沿</span>
+      </div>
+      <div class="reading-item">
+        <div class="reading-num">8</div>
+        <div class="reading-body">
+          <div class="reading-title"><a href="https://arxiv.org/abs/2102.02888" target="_blank">1-bit Adam</a></div>
+          <div class="reading-reason">通信压缩的代表作，降低多节点训练通信开销</div>
+        </div>
+        <span class="reading-type type-recommended">推荐</span>
+      </div>
+      <div class="reading-item">
+        <div class="reading-num">9</div>
+        <div class="reading-body">
+          <div class="reading-title"><a href="https://arxiv.org/abs/2104.07857" target="_blank">ZeRO-Infinity</a></div>
+          <div class="reading-reason">当 GPU 内存不够用时的终极方案</div>
+        </div>
+        <span class="reading-type type-recommended">推荐</span>
+      </div>
+      <div class="reading-item">
+        <div class="reading-num">10</div>
+        <div class="reading-body">
+          <div class="reading-title"><a href="https://arxiv.org/abs/2301.11913" target="_blank">SWARM Parallelism</a></div>
+          <div class="reading-reason">异构/不可靠设备上的训练范式</div>
+        </div>
+        <span class="reading-type type-recommended">推荐</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Resources -->
+  <section class="section" id="resources">
+    <div class="section-header">
+      <span class="section-icon">🌐</span>
+      <span class="section-title">资源地图</span>
+    </div>
+    <div class="resources-grid">
+      <div class="resource-section">
+        <div class="resource-section-title">💻 GitHub 开源实现</div>
+        <div class="resource-item">
+          <div class="resource-name"><a href="https://github.com/deepspeedai/DeepSpeed" target="_blank">🐙 DeepSpeed</a></div>
+          <div class="resource-meta"><span class="stars">⭐ 41.8k</span><span>微软的深度学习优化库，ZeRO、通信压缩、混合精度训练的核心框架</span></div>
+        </div>        <div class="resource-item">
+          <div class="resource-name"><a href="https://github.com/NVIDIA/Megatron-LM" target="_blank">🐙 Megatron-LM</a></div>
+          <div class="resource-meta"><span class="stars">⭐ 15.7k</span><span>NVIDIA 的大规模 Transformer 训练框架，TP/PP/CP 的标准实现</span></div>
+        </div>        <div class="resource-item">
+          <div class="resource-name"><a href="https://github.com/hpcaitech/ColossalAI" target="_blank">🐙 ColossalAI</a></div>
+          <div class="resource-meta"><span class="stars">⭐ 41.4k</span><span>异构内存管理 + 自动并行，适合资源受限场景</span></div>
+        </div>        <div class="resource-item">
+          <div class="resource-name"><a href="https://github.com/huggingface/accelerate" target="_blank">🐙 HuggingFace Accelerate</a></div>
+          <div class="resource-meta"><span class="stars">⭐ 9.6k</span><span>简化分布式训练的上层封装，支持 DeepSpeed/FSDP 等后端</span></div>
+        </div>        <div class="resource-item">
+          <div class="resource-name"><a href="https://github.com/EleutherAI/gpt-neox" target="_blank">🐙 GPT-NeoX</a></div>
+          <div class="resource-meta"><span class="stars">⭐ 7.4k</span><span>开源大模型训练框架，集成 Megatron + DeepSpeed</span></div>
+        </div>        <div class="resource-item">
+          <div class="resource-name"><a href="https://github.com/EvolvingLMMs-Lab/LLaVA-OneVision-1.5" target="_blank">🐙 LLaVA-OneVision-1.5</a></div>
+          <div class="resource-meta"><span class="stars">⭐ 766</span><span>多模态大模型 LLaVA 系列训练代码</span></div>
+        </div>        <div class="resource-item">
+          <div class="resource-name"><a href="https://github.com/foundation-model-stack/fms-fsdp" target="_blank">🐙 PyTorch FSDP</a></div>
+          <div class="resource-meta"><span class="stars">⭐ 282+</span><span>PyTorch 原生的 Fully Sharded Data Parallel 实现</span></div>
+        </div>
+      </div>
+      <div class="resource-section">
+        <div class="resource-section-title">📺 Bilibili 中文教程</div>
+        <div class="resource-item">
+          <div class="resource-name"><a href="https://www.bilibili.com/video/BV1jU4y1G7iu?p=1" target="_blank">📺 分布式训练【动手学深度学习v2】p01 分布式训练</a></div>
+          <div class="resource-meta"><span>▶ 0 播放</span></div>
+        </div>        <div class="resource-item">
+          <div class="resource-name"><a href="https://www.bilibili.com/video/BV1E9U8BBEvZ?p=1" target="_blank">📺 多模态大模型教程（LLM+多模态+SAM+视觉Prompt）</a></div>
+          <div class="resource-meta"><span>▶ 0 播放</span></div>
+        </div>
+      </div>
+      <div class="resource-section">
+        <div class="resource-section-title">📰 微信公众号文章</div>
+        <div class="resource-item">
+          <div class="resource-name"><a href="https://mp.weixin.qq.com/s?src=11&..." target="_blank">📰 飞桨分布式训练：4D混合并行可训千亿级AI模型</a></div>
+        </div>        <div class="resource-item">
+          <div class="resource-name"><a href="https://mp.weixin.qq.com/s?src=11&..." target="_blank">📰 北大河图 Galvatron：一键实现大模型高效自动并行 (VLDB 2023)</a></div>
+        </div>        <div class="resource-item">
+          <div class="resource-name"><a href="https://mp.weixin.qq.com/s?src=11&..." target="_blank">📰 大模型预训练、多模态大模型、强化学习 — 头部具身智能公司招聘</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Top Authors / Labs -->
+  <section class="section" id="authors">
+    <div class="section-header">
+      <span class="section-icon">🏛️</span>
+      <span class="section-title">领域强组 · 活跃研究者</span>
+    </div>
+        <div class="authors-grid">
+    <div class="author-card">
+      <div class="author-rank">#1</div>
+      <div class="author-body">
+        <div class="author-name"><a href="https://scholar.google.com/citations?user=XXXXXXXX" target="_blank">Samyam Rajbhandari</a><button data-name="Samyam Rajbhandari" onclick="sendEmailRequest(this.dataset.name)" style="float:right;background:#2563eb;color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:8px;">✉️ 写信联系</button></div>
+        <div class="author-institution">🏛️ Microsoft Research</div>
+        <div class="author-recent">近期：ZeRO 系列、DeepSpeed</div>
+      </div>
+      <div class="author-count">30<span>论文</span></div>
+    </div>
+    <div class="author-card">
+      <div class="author-rank">#2</div>
+      <div class="author-body">
+        <div class="author-name"><a href="https://scholar.google.com/citations?user=XXXXXXXX" target="_blank">Bryan Catanzaro</a><button data-name="Bryan Catanzaro" onclick="sendEmailRequest(this.dataset.name)" style="float:right;background:#2563eb;color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:8px;">✉️ 写信联系</button></div>
+        <div class="author-institution">🏛️ NVIDIA</div>
+        <div class="author-recent">近期：Megatron-LM、大规模训练系统</div>
+      </div>
+      <div class="author-count">80<span>论文</span></div>
+    </div>
+    <div class="author-card">
+      <div class="author-rank">#3</div>
+      <div class="author-body">
+        <div class="author-name"><a href="https://scholar.google.com/citations?user=XXXXXXXX" target="_blank">Yuxiong He</a><button data-name="Yuxiong He" onclick="sendEmailRequest(this.dataset.name)" style="float:right;background:#2563eb;color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:8px;">✉️ 写信联系</button></div>
+        <div class="author-institution">🏛️ Microsoft Research</div>
+        <div class="author-recent">近期：DeepSpeed、系统优化</div>
+      </div>
+      <div class="author-count">200<span>论文</span></div>
+    </div>
+    <div class="author-card">
+      <div class="author-rank">#4</div>
+      <div class="author-body">
+        <div class="author-name"><a href="https://scholar.google.com/citations?user=XXXXXXXX" target="_blank">Tianwei Zhang</a><button data-name="Tianwei Zhang" onclick="sendEmailRequest(this.dataset.name)" style="float:right;background:#2563eb;color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:8px;">✉️ 写信联系</button></div>
+        <div class="author-institution">🏛️ 北京大学</div>
+        <div class="author-recent">近期：LoongTrain、系统调研</div>
+      </div>
+      <div class="author-count">100<span>论文</span></div>
+    </div>
+    <div class="author-card">
+      <div class="author-rank">#5</div>
+      <div class="author-body">
+        <div class="author-name"><a href="https://scholar.google.com/citations?user=XXXXXXXX" target="_blank">Max Ryabinin</a><button data-name="Max Ryabinin" onclick="sendEmailRequest(this.dataset.name)" style="float:right;background:#2563eb;color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:8px;">✉️ 写信联系</button></div>
+        <div class="author-institution">🏛️ HSE University / Yandex</div>
+        <div class="author-recent">近期：SWARM Parallelism、分布式训练</div>
+      </div>
+      <div class="author-count">40<span>论文</span></div>
+    </div>
+    <div class="author-card">
+      <div class="author-rank">#6</div>
+      <div class="author-body">
+        <div class="author-name"><a href="https://scholar.google.com/citations?user=XXXXXXXX" target="_blank">Tim Dettmers</a><button data-name="Tim Dettmers" onclick="sendEmailRequest(this.dataset.name)" style="float:right;background:#2563eb;color:white;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;margin-left:8px;">✉️ 写信联系</button></div>
+        <div class="author-institution">🏛️ University of Washington</div>
+        <div class="author-recent">近期：QLoRA、SWARM、量化训练</div>
+      </div>
+      <div class="author-count">30<span>论文</span></div>
+    </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="footer">
+  <strong>FrontierPilot</strong> · "一个课题，从小白到专家" · 成长型知识库 · 生成时间：2026-03-17 09:03
+</div>
+
+<script>
+mermaid.initialize({ startOnLoad: true, theme: 'base', themeVariables: {
+  primaryColor: '#dbeafe', primaryTextColor: '#1e40af', primaryBorderColor: '#2563eb',
+  lineColor: '#94a3b8', fontSize: '14px',
+  nodeBorder: '#2563eb',
+}, securityLevel: 'loose' });
+
+// ── Interactive Knowledge Graph ──
+const paperIndex = {"N2020_ZeRO": {"title": "ZeRO: Memory Optimizations Toward Training Trillion Parameter Models", "authors": ["Samyam Rajbhandari", "Jeff Rasley", "Olatunji Ruwase", "Yuxiong He"], "year": 2020, "citation_count": 3100, "venue": "", "arxiv_id": "", "ss_paper_id": "", "abstract": "DeepSpeed 的核心：通过分片优化器状态、梯度和参数，将内存消耗从 O(N) 降到 O(N/k)，k 为 GPU 数量。", "url": "https://arxiv.org/abs/1910.02054", "type": "foundation"}, "N2022_Merak": {"title": "Merak: An Efficient Distributed DNN Training Framework with Automated 3D Parallelism for Giant Foundation Models", "authors": ["Zhiquan Lai", "Shengwei Li", "Xudong Tang"], "year": 2022, "citation_count": 64, "venue": "", "arxiv_id": "", "ss_paper_id": "", "abstract": "自动化 3D 并行框架：通过图切分算法自动为模型分配最优的 DP/TP/PP 策略，用户无需手动修改代码。", "url": "https://arxiv.org/abs/2206.04959", "type": "foundation"}, "N2019_Megatron": {"title": "Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism", "authors": ["Mohammad Shoeybi", "Mostofa Patwary", "Raul Puri", "Patrick LeGresley", "Jared Casper", "Bryan Catanzaro"], "year": 2019, "citation_count": 4200, "venue": "", "arxiv_id": "", "ss_paper_id": "", "abstract": "提出张量并行（Tensor Parallelism），将单个 Transformer 层切分到多个 GPU 上，成为后续所有分布式训练框架的基石。", "url": "https://arxiv.org/abs/1909.08053", "type": "foundation"}, "N2021_1bitAdam": {"title": "1-bit Adam: Communication Efficient Large-Scale Training with Adam's Convergence Speed", "authors": [], "year": 2021, "citation_count": 103, "venue": "ICML 2021", "arxiv_id": "", "ss_paper_id": "", "abstract": "", "url": "https://arxiv.org/abs/2102.02888", "type": "frontier", "avg_rating": null}, "N2021_ScaleCom": {"title": "ZeRO-Infinity: Breaking the GPU Memory Wall for Extreme Scale Deep Learning", "authors": ["Samyam Rajbhandari", "Olatunji Ruwase", "Jeff Rasley", "Shaden Smith", "Yuxiong He"], "year": 2021, "citation_count": 950, "venue": "", "arxiv_id": "", "ss_paper_id": "", "abstract": "ZeRO 的终极扩展：利用 CPU 内存和 NVMe SSD，让单个 GPU 能训练任意大小的模型。", "url": "https://arxiv.org/abs/2104.07857", "type": "foundation"}, "N2021_ZeRO_Inf": {"title": "ScaleCom: Scalable Sparsified Gradient Compression for Communication-Efficient Distributed Training", "authors": [], "year": 2021, "citation_count": 76, "venue": "NeurIPS 2021", "arxiv_id": "", "ss_paper_id": "", "abstract": "", "url": "https://arxiv.org/abs/2104.11125", "type": "frontier", "avg_rating": null}, "N2022_MT_NLG": {"title": "Using DeepSpeed and Megatron to Train Megatron-Turing NLG 530B", "authors": ["Shaden Smith", "Mostofa Patwary", "Brandon Norick", "Patrick LeGresley", "Samyam Rajbhandari", "Jared Casper", "Zhun Liu", "Shrimai Prabhumoye", "George Zerveas", "Vijay Korthikanti", "Elton Zhang", "Rewon Child", "Reza Yazdani Aminabadi", "Julie Bernauer", "Xia Song", "Mohammad Shoeybi", "Yuxiong He", "Michael Houston", "Saurabh Tiwary", "Bryan Catanzaro"], "year": 2022, "citation_count": 1200, "venue": "", "arxiv_id": "", "ss_paper_id": "", "abstract": "首次将 Megatron-LM 的 TP/PP 与 DeepSpeed 的 ZeRO-3 结合，成功训练 530B 参数模型的工业级实践。", "url": "https://arxiv.org/abs/2201.11990", "type": "foundation"}, "N2023_OptimusCC": {"title": "Optimus-CC: Efficient Large NLP Model Training with 3D Parallelism Aware Communication Compression", "authors": [], "year": 2023, "citation_count": 41, "venue": "ASPLOS 2023", "arxiv_id": "", "ss_paper_id": "", "abstract": "", "url": "https://arxiv.org/abs/2301.09830", "type": "frontier", "avg_rating": null}, "N2023_SWARM": {"title": "SWARM Parallelism: Training Large Models Can Be Surprisingly Communication-Efficient", "authors": ["Max Ryabinin", "Tim Dettmers", "Michael Diskin", "Alexander Borzunov"], "year": 2023, "citation_count": 59, "venue": "", "arxiv_id": "", "ss_paper_id": "", "abstract": "面向异构、不可靠设备的模型并行算法：通过随机化流水线和故障重平衡，在慢速网络上也能训练大模型。", "url": "https://arxiv.org/abs/2301.11913", "type": "foundation"}, "N2024_Centauri": {"title": "Centauri: Enabling Efficient Scheduling for Communication-Computation Overlap in Large Model Training", "authors": [], "year": 2024, "citation_count": 63, "venue": "ASPLOS 2024", "arxiv_id": "", "ss_paper_id": "", "abstract": "", "url": "https://dl.acm.org/doi/10.1145/3620666.3651337", "type": "frontier", "avg_rating": null}, "N2024_LoongTrain": {"title": "LoongTrain: Efficient Training of Long-Sequence LLMs with Head-Context Parallelism", "authors": [], "year": 2024, "citation_count": 19, "venue": "arXiv 2024", "arxiv_id": "", "ss_paper_id": "", "abstract": "", "url": "https://arxiv.org/abs/2406.18485", "type": "frontier", "avg_rating": null}, "N2026_DHP": {"title": "DHP: Efficient Scaling of MLLM Training with Dynamic Hybrid Parallelism", "authors": [], "year": 2026, "citation_count": 0, "venue": "arXiv 2026", "arxiv_id": "", "ss_paper_id": "", "abstract": "", "url": "https://arxiv.org/abs/2602.21788", "type": "frontier", "avg_rating": null}};
+let currentTooltipNodeId = null;
+
+function showPaperTooltip(nodeId) {
+  const paper = paperIndex[nodeId];
+  if (!paper) return;
+  currentTooltipNodeId = nodeId;
+
+  document.getElementById('tooltipTitle').textContent = paper.title;
+
+  const authors = Array.isArray(paper.authors) ? paper.authors.slice(0,3).join(', ') : (paper.authors || '');
+  const meta = [
+    paper.year,
+    paper.venue || '',
+    paper.citation_count ? paper.citation_count.toLocaleString() + ' citations' : '',
+    paper.avg_rating ? 'Rating: ' + paper.avg_rating : ''
+  ].filter(Boolean).join(' · ');
+  document.getElementById('tooltipMeta').textContent = [authors, meta].filter(Boolean).join(' | ');
+  document.getElementById('tooltipAbstract').textContent = paper.abstract || 'No abstract available';
+
+  const link = document.getElementById('tooltipLink');
+  if (paper.url) {
+    link.href = paper.url;
+    link.style.display = 'inline-flex';
+  } else {
+    link.style.display = 'none';
+  }
+
+  const expandBtn = document.getElementById('tooltipExpandBtn');
+  // Show Expand if we have any identifier; title-only fallback handled server-side
+  expandBtn.style.display = (paper.ss_paper_id || paper.arxiv_id || paper.title) ? 'block' : 'none';
+
+  document.getElementById('tooltipExpandStatus').style.display = 'none';
+  document.getElementById('paperTooltip').style.display = 'block';
+  document.getElementById('tooltipOverlay').style.display = 'block';
+}
+
+function closePaperTooltip() {
+  document.getElementById('paperTooltip').style.display = 'none';
+  document.getElementById('tooltipOverlay').style.display = 'none';
+  currentTooltipNodeId = null;
+}
+
+function chatAboutPaper(nodeId) {
+  const paper = paperIndex[nodeId];
+  if (!paper) return;
+  closePaperTooltip();
+  const input = document.getElementById('chat-input');
+  if (input) {
+    input.value = '分析这篇论文：' + paper.title;
+    const chatTab = document.querySelector('.nav-item[onclick*="panel-chat"]');
+    if (chatTab) chatTab.click();
+    setTimeout(() => {
+      const btn = document.getElementById('chat-send-btn');
+      if (btn) btn.click();
+    }, 100);
+  }
+}
+
+function expandFromNode(nodeId) {
+  const paper = paperIndex[nodeId];
+  if (!paper) return;
+
+  const statusDiv = document.getElementById('tooltipExpandStatus');
+  statusDiv.style.display = 'block';
+  statusDiv.style.color = '#2563eb';
+  statusDiv.textContent = '⏳ 正在发现相似论文...';
+
+  const paperId = paper.ss_paper_id || (paper.arxiv_id ? 'arXiv:' + paper.arxiv_id : '');
+
+  fetch('http://localhost:7779/command', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({message: 'expand_paper ' + paperId + ' ' + paper.title})
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (!data.id) throw new Error('no id');
+    const evtSource = new EventSource('http://localhost:7779/stream?id=' + data.id);
+    evtSource.onmessage = (e) => {
+      let event;
+      try { event = JSON.parse(e.data); } catch { return; }
+      if (event.type === 'step') {
+        statusDiv.textContent = event.text;
+      } else if (event.type === 'graph_update') {
+        appendNodesToGraph(event.new_papers, nodeId);
+        statusDiv.style.color = '#059669';
+        statusDiv.textContent = '✅ 已发现 ' + event.new_papers.length + ' 篇相似论文';
+        evtSource.close();
+      } else if (event.type === 'done') {
+        if (statusDiv.textContent.indexOf('✅') === -1) {
+          statusDiv.style.color = '#6b7280';
+          statusDiv.textContent = '未找到相似论文，可能是网络问题或 API 限制';
+        }
+        evtSource.close();
+      }
+    };
+    evtSource.onerror = () => {
+      statusDiv.style.color = '#6b7280';
+      statusDiv.textContent = '发现失败，请稍后重试';
+      evtSource.close();
+    };
+  })
+  .catch(() => {
+    statusDiv.style.color = '#6b7280';
+    statusDiv.textContent = '暂时无法连接助手服务，请确认 chat_server.py 正在运行';
+  });
+}
+
+function appendNodesToGraph(newPapers, sourceNodeId) {
+  newPapers.forEach(p => { paperIndex[p.node_id] = p; });
+
+  const expandList = document.getElementById('graphExpansionList');
+  expandList.style.display = 'block';
+  const list = document.getElementById('expandedPapersList');
+  newPapers.forEach(p => {
+    list.insertAdjacentHTML('beforeend',
+      '<div style="border-bottom:1px solid #d1fae5;padding:10px 0;">' +
+      '<div style="font-weight:600;">' + p.title + ' (' + p.year + ')</div>' +
+      '<div style="color:#6b7280;font-size:13px;">' + (p.authors||[]).slice(0,3).join(', ') + ' · ' + (p.citation_count||0) + ' citations</div>' +
+      '<div style="color:#374151;font-size:13px;margin-top:4px;">' + (p.abstract_snippet||'') + '</div>' +
+      (p.url ? '<a href="' + p.url + '" target="_blank" style="color:#2563eb;font-size:12px;">View paper</a>' : '') +
+      '</div>'
+    );
+  });
+}
+
+// ── Tab / Panel switching ──
+const viewMain = document.getElementById('view-main');
+const panels = document.querySelectorAll('.view-panel');
+const navItems = document.querySelectorAll('.nav-item');
+
+function showMain(evt, anchorId) {
+  if (evt) evt.preventDefault();
+  viewMain.style.display = 'block';
+  panels.forEach(p => { p.style.display = 'none'; p.classList.remove('active'); });
+  navItems.forEach(n => n.classList.remove('active'));
+  if (anchorId) {
+    const el = document.getElementById(anchorId);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const navLink = document.querySelector(`.nav-item[href="#${anchorId}"]`);
+    if (navLink) navLink.classList.add('active');
+  }
+}
+
+function showPanel(evt, panelId) {
+  if (evt) evt.preventDefault();
+  viewMain.style.display = 'none';
+  panels.forEach(p => { p.style.display = 'none'; p.classList.remove('active'); });
+  const panel = document.getElementById(panelId);
+  if (panel) { panel.style.display = 'block'; panel.classList.add('active'); }
+  navItems.forEach(n => n.classList.remove('active'));
+  const activeNav = document.querySelector(`.nav-item[onclick*="${panelId}"]`);
+  if (activeNav) activeNav.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Nav active state on scroll (main view only) ──
+const sections = document.querySelectorAll('#view-main .section');
+const mainNavItems = Array.from(navItems).filter(n => !n.classList.contains('panel-tab'));
+const observer = new IntersectionObserver((entries) => {
+  if (viewMain.style.display === 'none') return;
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      mainNavItems.forEach(n => n.classList.remove('active'));
+      const active = document.querySelector(`.nav-item[href="#${e.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { threshold: 0.2, rootMargin: '-60px 0px -60% 0px' });
+sections.forEach(s => observer.observe(s));
+
+// ── Chat (智能助手) ──
+const CHAT_SERVER = 'http://localhost:7779';
+const TOPIC_NAME = 'Multimodal Model Distributed Training Optimization';
+const chatMessages = document.getElementById('chat-messages');
+const chatInput = document.getElementById('chat-input');
+const chatSendBtn = document.getElementById('chat-send-btn');
+const chatDot = document.getElementById('chat-dot');
+const chatStatusText = document.getElementById('chat-status-text');
+const chatRefreshHint = document.getElementById('chat-refresh-hint');
+
+let serverOnline = false;
+let currentEs = null;   // active EventSource
+
+// ── 服务器心跳检测 ──
+function checkServer() {
+  fetch(CHAT_SERVER + '/ping')
+    .then(r => r.json())
+    .then(() => {
+      if (!serverOnline) {
+        serverOnline = true;
+        if (chatDot) chatDot.classList.add('online');
+        if (chatStatusText) chatStatusText.textContent = 'FrontierPilot 助手已连接 · localhost:7779';
+      }
+    })
+    .catch(() => {
+      serverOnline = false;
+      if (chatDot) chatDot.classList.remove('online');
+      if (chatStatusText) chatStatusText.textContent = '助手未连接 — 请先运行 chat_server.py';
+    });
+}
+checkServer();
+setInterval(checkServer, 8000);
+
+// ── DOM 操作工具 ──
+function removeWelcome() {
+  const w = chatMessages.querySelector('.chat-welcome');
+  if (w) w.remove();
+}
+
+function appendUserMsg(text, skipSave) {
+  removeWelcome();
+  const wrap = document.createElement('div');
+  wrap.className = 'chat-msg user';
+  const av = document.createElement('div');
+  av.className = 'chat-avatar'; av.textContent = '👤';
+  const bub = document.createElement('div');
+  bub.className = 'chat-bubble'; bub.textContent = text;
+  wrap.appendChild(av); wrap.appendChild(bub);
+  chatMessages.appendChild(wrap);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  if (!skipSave) saveChatMessage('user', text);
+}
+
+function createAgentBubble() {
+  removeWelcome();
+  const wrap = document.createElement('div');
+  wrap.className = 'chat-msg agent';
+  const av = document.createElement('div');
+  av.className = 'chat-avatar'; av.textContent = '🤖';
+  const bub = document.createElement('div');
+  bub.className = 'chat-bubble';
+  wrap.appendChild(av); wrap.appendChild(bub);
+  chatMessages.appendChild(wrap);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  return bub;
+}
+
+function createStepLine() {
+  const line = document.createElement('div');
+  line.style.cssText = 'font-size:11px;color:var(--text-muted);margin:2px 0 2px 40px;line-height:1.6';
+  chatMessages.appendChild(line);
+  return line;
+}
+
+function enableInput() {
+  if (chatSendBtn) chatSendBtn.disabled = false;
+  if (chatInput) { chatInput.disabled = false; chatInput.focus(); }
+}
+
+// ── Chat history (localStorage, UI-only) ──
+const CHAT_HISTORY_KEY = 'fp_chat_' + TOPIC_NAME.replace(/\s+/g, '_');
+const MAX_HISTORY = 40;
+
+function saveChatMessage(role, content) {
+  try {
+    const hist = JSON.parse(localStorage.getItem(CHAT_HISTORY_KEY) || '[]');
+    hist.push({ role, content, ts: Date.now() });
+    if (hist.length > MAX_HISTORY) hist.splice(0, hist.length - MAX_HISTORY);
+    localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(hist));
+  } catch(e) {}
+}
+
+function loadChatHistory() {
+  try {
+    const hist = JSON.parse(localStorage.getItem(CHAT_HISTORY_KEY) || '[]');
+    if (!hist.length) return;
+    hist.forEach(m => {
+      if (m.role === 'user') appendUserMsg(m.content, true);
+      else if (m.role === 'assistant') {
+        const bub = createAgentBubble();
+        bub.textContent = m.content;
+      }
+    });
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  } catch(e) {}
+}
+
+// ── SSE 流式接收 ──
+function subscribeStream(cmdId, userMsg) {
+  if (currentEs) { currentEs.close(); currentEs = null; }
+
+  const agentBubble = createAgentBubble();
+  agentBubble.innerHTML = '<div class="thinking-dots"><span></span><span></span><span></span></div>';
+  let firstToken = true;
+  let stepLine = null;
+  let fullText = '';
+
+  const es = new EventSource(CHAT_SERVER + '/stream?id=' + cmdId);
+  currentEs = es;
+
+  es.onmessage = (e) => {
+    let event;
+    try { event = JSON.parse(e.data); } catch { return; }
+
+    if (event.type === 'step') {
+      // Show progress step below previous step (small muted text)
+      if (!stepLine || stepLine.textContent) stepLine = createStepLine();
+      stepLine.textContent = event.text;
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    } else if (event.type === 'token') {
+      if (firstToken) {
+        agentBubble.innerHTML = '';   // clear "..."
+        firstToken = false;
+      }
+      fullText += event.text;
+      // Strip any fallback [ACTION:xxx] markers before display
+      agentBubble.textContent = fullText.replace(/\[ACTION:[^\]]+\]/g, '').trimEnd();
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    } else if (event.type === 'done') {
+      es.close(); currentEs = null;
+      if (firstToken) agentBubble.innerHTML = '✅ 处理完成';
+      // Save clean text to localStorage for UI history
+      const cleanText = fullText.replace(/\[ACTION:[^\]]+\]/g, '').trim();
+      if (cleanText) saveChatMessage('assistant', cleanText);
+      if (event.action === 'html_updated' && chatRefreshHint) {
+        chatRefreshHint.style.display = 'block';
+      }
+      enableInput();
+    }
+  };
+
+  es.onerror = () => {
+    es.close(); currentEs = null;
+    if (firstToken) agentBubble.textContent = '❌ 连接断开，请检查 chat_server.py 是否运行中。';
+    enableInput();
+  };
+}
+
+// ── 发送消息 ──
+function sendChat() {
+  if (!chatInput) return;
+  const msg = chatInput.value.trim();
+  if (!msg) return;
+
+  if (!serverOnline) {
+    appendUserMsg(msg);
+    const bub = createAgentBubble();
+    bub.textContent = '⚠️ 助手未连接，请先运行：python3 chat_server.py --data <data.json>';
+    return;
+  }
+
+  appendUserMsg(msg);
+  chatInput.value = '';
+  chatInput.style.height = 'auto';
+  if (chatSendBtn) chatSendBtn.disabled = true;
+  if (chatInput) chatInput.disabled = true;
+
+  fetch(CHAT_SERVER + '/command', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: msg, topic: TOPIC_NAME }),
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.id) subscribeStream(data.id, msg);
+      else throw new Error('no id');
+    })
+    .catch(() => {
+      const bub = createAgentBubble();
+      bub.textContent = '❌ 发送失败，请检查 chat_server.py 是否在运行。';
+      enableInput();
+    });
+}
+
+function fillInput(text) {
+  if (!chatInput) return;
+  chatInput.value = text;
+  chatInput.focus();
+  // auto-resize
+  chatInput.style.height = 'auto';
+  chatInput.style.height = chatInput.scrollHeight + 'px';
+}
+
+// Auto-resize textarea
+if (chatInput) {
+  chatInput.addEventListener('input', () => {
+    chatInput.style.height = 'auto';
+    chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+  });
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendChat();
+    }
+  });
+}
+
+// Load chat history from localStorage (UI restore on page reload)
+loadChatHistory();
+
+// ── P0: Email outreach (✉️ button on author cards) ──
+function sendEmailRequest(authorName) {
+  const input = document.getElementById('chat-input');
+  if (input) input.value = '帮我给 ' + authorName + ' 写一封邮件';
+  const chatTab = document.querySelector('.nav-item[onclick*="panel-chat"]');
+  if (chatTab) chatTab.click();
+  setTimeout(() => {
+    const btn = document.getElementById('chat-send-btn');
+    if (btn) btn.click();
+  }, 100);
+}
+
+// ── P1: Pending Actions Approval Queue ──
+function _platformIcon(p) { return ({xiaohongshu:'📕',wechat:'💬',github:'💻'})[p] || '🌐'; }
+function _actionLabel(a) { return ({follow:'关注',join_group:'加群',star_repo:'⭐ 仓库'})[a] || a; }
+
+function loadPendingActions() {
+  fetch('http://localhost:7779/pending_actions/list')
+    .then(r => r.json())
+    .then(data => {
+      const actions = data.actions || [];
+      const pending = actions.filter(a => a.status === 'pending');
+      const section = document.getElementById('pendingActionsSection');
+      const list = document.getElementById('pendingActionsList');
+      if (!section || !list) return;
+      if (pending.length === 0) { section.style.display = 'none'; return; }
+      section.style.display = 'block';
+      list.innerHTML = pending.map(a => `
+        <div style="border:1px solid #d1fae5;border-radius:8px;padding:16px;margin-bottom:12px;background:#f0fdf4;" data-id="${a.id}">
+          <div style="display:flex;justify-content:space-between;align-items:start;">
+            <div>
+              <span style="font-weight:600;">${_platformIcon(a.platform)} ${a.target_name}</span>
+              <span style="margin-left:8px;color:#6b7280;font-size:12px;">${_actionLabel(a.action)}</span>
+            </div>
+            <div>
+              <button onclick="approveAction('${a.id}')" style="background:#059669;color:white;border:none;border-radius:6px;padding:6px 14px;cursor:pointer;margin-right:6px;">✅ 批准</button>
+              <button onclick="rejectAction('${a.id}')" style="background:#ef4444;color:white;border:none;border-radius:6px;padding:6px 14px;cursor:pointer;">❌ 拒绝</button>
+            </div>
+          </div>
+          <div style="margin-top:8px;color:#374151;font-size:14px;">理由：${a.reason || ''}</div>
+          ${a.draft_message ? `<div style="margin-top:8px;"><label style="font-size:12px;color:#6b7280;">申请消息：</label><textarea id="dm_${a.id}" style="width:100%;margin-top:4px;padding:6px;border:1px solid #d1d5db;border-radius:4px;font-size:13px;">${a.draft_message}</textarea><button onclick="saveMessage('${a.id}')" style="margin-top:4px;background:#2563eb;color:white;border:none;border-radius:4px;padding:4px 10px;cursor:pointer;font-size:12px;">保存</button></div>` : ''}
+          ${a.target_url ? `<div style="margin-top:6px;"><a href="${a.target_url}" target="_blank" style="color:#2563eb;font-size:12px;">🔗 查看链接</a></div>` : ''}
+        </div>
+      `).join('');
+    })
+    .catch(() => {
+      const section = document.getElementById('pendingActionsSection');
+      if (section) section.style.display = 'none';
+    });
+}
+
+function approveAction(id) {
+  fetch('http://localhost:7779/pending_actions/approve', {
+    method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id})
+  }).then(() => loadPendingActions());
+}
+
+function rejectAction(id) {
+  fetch('http://localhost:7779/pending_actions/reject', {
+    method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({id})
+  }).then(() => loadPendingActions());
+}
+
+function saveMessage(id) {
+  const el = document.getElementById('dm_' + id);
+  if (!el) return;
+  fetch('http://localhost:7779/pending_actions/edit', {
+    method: 'POST', headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({id, draft_message: el.value})
+  }).then(() => alert('已保存'));
+}
+
+// ── P2: Reviewer Consensus Heatmap ──
+const reviewerConsensus = {"papers": [{"title": "DHP: Efficient Scaling of MLLM Training with Dynam", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}, {"title": "LoongTrain: Efficient Training of Long-Sequence LL", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}, {"title": "Centauri: Enabling Efficient Scheduling for Commun", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}, {"title": "Optimus-CC: Efficient Large NLP Model Training wit", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}, {"title": "1-bit Adam: Communication Efficient Large-Scale Tr", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}, {"title": "ScaleCom: Scalable Sparsified Gradient Compression", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}, {"title": "Communication-Efficient Large-Scale Distributed De", "avg_rating": 0, "rating_std": 0, "scores": [], "key_themes": []}], "theme_clusters": []};
+
+let heatmapInited = false;
+function initHeatmap() {
+  if (heatmapInited) return;
+  heatmapInited = true;
+
+  const tbody = document.getElementById('heatmapTableBody');
+  if (!tbody || !reviewerConsensus || !reviewerConsensus.papers) return;
+
+  reviewerConsensus.papers.forEach(p => {
+    const consensusLevel = p.rating_std < 1.0 ? '🟢 高度一致' : p.rating_std < 2.0 ? '🟡 基本一致' : '🔴 存在争议';
+    const ratingColor = p.avg_rating >= 7 ? '#059669' : p.avg_rating >= 5 ? '#d97706' : '#dc2626';
+    const dots = (p.scores || []).map(s => {
+      const h = Math.round((s / 10) * 120);
+      return `<span style="display:inline-block;width:20px;height:20px;border-radius:50%;background:hsl(${h},70%,50%);margin:2px;vertical-align:middle;" title="${s}"></span>`;
+    }).join('');
+
+    tbody.insertAdjacentHTML('beforeend', `
+      <tr style="border-bottom:1px solid #f3f4f6;">
+        <td style="padding:10px 16px;max-width:280px;font-weight:500;">${p.title}</td>
+        <td style="padding:10px 16px;text-align:center;font-weight:700;color:${ratingColor};font-size:18px;">${p.avg_rating || 'N/A'}</td>
+        <td style="padding:10px 16px;text-align:center;color:#6b7280;">${p.rating_std || '—'}</td>
+        <td style="padding:10px 16px;">${dots || '<span style="color:#9ca3af">暂无评分</span>'}</td>
+        <td style="padding:10px 16px;">${consensusLevel}</td>
+      </tr>
+    `);
+  });
+
+  const grid = document.getElementById('themeClusterGrid');
+  if (grid && reviewerConsensus.theme_clusters) {
+    const colors = {positive:'#ecfdf5', mixed:'#fffbeb', negative:'#fef2f2'};
+    const borders = {positive:'#059669', mixed:'#d97706', negative:'#dc2626'};
+    reviewerConsensus.theme_clusters.forEach(t => {
+      grid.insertAdjacentHTML('beforeend', `
+        <div style="background:${colors[t.sentiment]||'#f9fafb'};border:1px solid ${borders[t.sentiment]||'#e5e7eb'};border-radius:8px;padding:16px;">
+          <div style="font-weight:600;color:#374151;margin-bottom:4px;">${t.theme}</div>
+          <div style="font-size:12px;color:#6b7280;">${t.sentiment === 'positive' ? '✅ 普遍认可' : t.sentiment === 'negative' ? '⚠️ 普遍质疑' : '⚡ 存在争议'}</div>
+        </div>
+      `);
+    });
+  }
+}
+
+// Wire initHeatmap to panel click
+document.addEventListener('DOMContentLoaded', () => {
+  const heatmapNav = document.querySelector('.nav-item[onclick*="panel-heatmap"]');
+  if (heatmapNav) heatmapNav.addEventListener('click', initHeatmap);
+});
+</script>
+</body>
+</html>

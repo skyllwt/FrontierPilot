@@ -1,0 +1,119 @@
+[
+  {
+    "arxiv_id": "1908.00709v6",
+    "title": "AutoML: A Survey of the State-of-the-Art",
+    "authors": [
+      "Xin He",
+      "Kaiyong Zhao",
+      "Xiaowen Chu"
+    ],
+    "published": "2019-08-02",
+    "abstract": "Deep learning (DL) techniques have penetrated all aspects of our lives and brought us great convenience. However, building a high-quality DL system for a specific task highly relies on human expertise, hindering the applications of DL to more areas. Automated machine learning (AutoML) becomes a promising solution to build a DL system without human assistance, and a growing number of researchers fo",
+    "url": "https://arxiv.org/abs/1908.00709v6"
+  },
+  {
+    "arxiv_id": "2306.04338v1",
+    "title": "Changing Data Sources in the Age of Machine Learning for Official Statistics",
+    "authors": [
+      "Cedric De Boom",
+      "Michael Reusens"
+    ],
+    "published": "2023-06-07",
+    "abstract": "Data science has become increasingly essential for the production of official statistics, as it enables the automated collection, processing, and analysis of large amounts of data. With such data science practices in place, it enables more timely, more insightful and more flexible reporting. However, the quality and integrity of data-science-driven statistics rely on the accuracy and reliability o",
+    "url": "https://arxiv.org/abs/2306.04338v1"
+  },
+  {
+    "arxiv_id": "2006.16189v4",
+    "title": "DOME: Recommendations for supervised machine learning validation in biology",
+    "authors": [
+      "Ian Walsh",
+      "Dmytro Fishman",
+      "Dario Garcia-Gasulla"
+    ],
+    "published": "2020-06-25",
+    "abstract": "Modern biology frequently relies on machine learning to provide predictions and improve decision processes. There have been recent calls for more scrutiny on machine learning performance and possible limitations. Here we present a set of community-wide recommendations aiming to help establish standards of supervised machine learning validation in biology. Adopting a structured methods description ",
+    "url": "https://arxiv.org/abs/2006.16189v4"
+  },
+  {
+    "arxiv_id": "2003.03384v2",
+    "title": "AutoML-Zero: Evolving Machine Learning Algorithms From Scratch",
+    "authors": [
+      "Esteban Real",
+      "Chen Liang",
+      "David R. So"
+    ],
+    "published": "2020-03-06",
+    "abstract": "Machine learning research has advanced in multiple aspects, including model structures and learning methods. The effort to automate such research, known as AutoML, has also made significant progress. However, this progress has largely focused on the architecture of neural networks, where it has relied on sophisticated expert-designed layers as building blocks---or similarly restrictive search spac",
+    "url": "https://arxiv.org/abs/2003.03384v2"
+  },
+  {
+    "arxiv_id": "2201.12150v2",
+    "title": "Learning Curves for Decision Making in Supervised Machine Learning: A Survey",
+    "authors": [
+      "Felix Mohr",
+      "Jan N. van Rijn"
+    ],
+    "published": "2022-01-28",
+    "abstract": "Learning curves are a concept from social sciences that has been adopted in the context of machine learning to assess the performance of a learning algorithm with respect to a certain resource, e.g., the number of training examples or the number of training iterations. Learning curves have important applications in several machine learning contexts, most notably in data acquisition, early stopping",
+    "url": "https://arxiv.org/abs/2201.12150v2"
+  },
+  {
+    "arxiv_id": "1906.02869v2",
+    "title": "One-Shot Neural Architecture Search via Compressive Sensing",
+    "authors": [
+      "Minsu Cho",
+      "Mohammadreza Soltani",
+      "Chinmay Hegde"
+    ],
+    "published": "2019-06-07",
+    "abstract": "Neural Architecture Search remains a very challenging meta-learning problem. Several recent techniques based on parameter-sharing idea have focused on reducing the NAS running time by leveraging proxy models, leading to architectures with competitive performance compared to those with hand-crafted designs. In this paper, we propose an iterative technique for NAS, inspired by algorithms for learnin",
+    "url": "https://arxiv.org/abs/1906.02869v2"
+  },
+  {
+    "arxiv_id": "2104.10450v1",
+    "title": "Making Differentiable Architecture Search less local",
+    "authors": [
+      "Erik Bodin",
+      "Federico Tomasi",
+      "Zhenwen Dai"
+    ],
+    "published": "2021-04-21",
+    "abstract": "Neural architecture search (NAS) is a recent methodology for automating the design of neural network architectures. Differentiable neural architecture search (DARTS) is a promising NAS approach that dramatically increases search efficiency. However, it has been shown to suffer from performance collapse, where the search often leads to detrimental architectures. Many recent works try to address thi",
+    "url": "https://arxiv.org/abs/2104.10450v1"
+  },
+  {
+    "arxiv_id": "2007.16149v1",
+    "title": "HMCNAS: Neural Architecture Search using Hidden Markov Chains and Bayesian Optimization",
+    "authors": [
+      "Vasco Lopes",
+      "Luís A. Alexandre"
+    ],
+    "published": "2020-07-31",
+    "abstract": "Neural Architecture Search has achieved state-of-the-art performance in a variety of tasks, out-performing human-designed networks. However, many assumptions, that require human definition, related with the problems being solved or the models generated are still needed: final model architectures, number of layers to be sampled, forced operations, small search spaces, which ultimately contributes t",
+    "url": "https://arxiv.org/abs/2007.16149v1"
+  },
+  {
+    "arxiv_id": "2010.08219v2",
+    "title": "How Does Supernet Help in Neural Architecture Search?",
+    "authors": [
+      "Yuge Zhang",
+      "Quanlu Zhang",
+      "Yaming Yang"
+    ],
+    "published": "2020-10-16",
+    "abstract": "Weight sharing, as an approach to speed up architecture performance estimation has received wide attention. Instead of training each architecture separately, weight sharing builds a supernet that assembles all the architectures as its submodels. However, there has been debate over whether the NAS process actually benefits from weight sharing, due to the gap between supernet optimization and the ob",
+    "url": "https://arxiv.org/abs/2010.08219v2"
+  },
+  {
+    "arxiv_id": "1901.01074v3",
+    "title": "Multi-Objective Reinforced Evolution in Mobile Neural Architecture Search",
+    "authors": [
+      "Xiangxiang Chu",
+      "Bo Zhang",
+      "Ruijun Xu"
+    ],
+    "published": "2019-01-04",
+    "abstract": "Fabricating neural models for a wide range of mobile devices demands for a specific design of networks due to highly constrained resources. Both evolution algorithms (EA) and reinforced learning methods (RL) have been dedicated to solve neural architecture search problems. However, these combinations usually concentrate on a single objective such as the error rate of image classification. They als",
+    "url": "https://arxiv.org/abs/1901.01074v3"
+  }
+]

@@ -1,0 +1,1 @@
+../../openreview-explorer/scripts/semantic_scholar.py

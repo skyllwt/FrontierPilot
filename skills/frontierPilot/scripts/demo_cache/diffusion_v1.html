@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FrontierPilot · Diffusion Models 知识库</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+:root {
+  --primary: #2563eb;
+  --primary-light: #eff6ff;
+  --frontier: #7c3aed;
+  --frontier-light: #f5f3ff;
+  --social: #059669;
+  --social-light: #ecfdf5;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --text: #1e293b;
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.04);
+  --shadow-hover: 0 4px 12px rgba(0,0,0,0.12), 0 8px 32px rgba(0,0,0,0.06);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+  background: var(--bg); color: var(--text); line-height: 1.6;
+}
+
+/* ── Header ── */
+.header {
+  background: linear-gradient(135deg, #1e40af 0%, #4338ca 50%, #7c3aed 100%);
+  color: white; padding: 40px 32px 32px; position: relative; overflow: hidden;
+}
+.header::before {
+  content: ''; position: absolute; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.header-inner { position: relative; max-width: 1100px; margin: 0 auto; }
+.logo { font-size: 13px; font-weight: 600; letter-spacing: 2px; opacity: 0.7; margin-bottom: 8px; }
+.header h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 8px; }
+.header-sub { opacity: 0.85; font-size: 1rem; margin-bottom: 20px; }
+.badges { display: flex; gap: 8px; flex-wrap: wrap; }
+.badge {
+  background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+  border-radius: 20px; padding: 4px 12px; font-size: 12px; font-weight: 500;
+}
+
+/* ── Nav ── */
+.nav {
+  background: white; border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.nav-inner {
+  max-width: 1100px; margin: 0 auto; padding: 0 32px;
+  display: flex; gap: 4px; overflow-x: auto;
+}
+.nav-item {
+  padding: 14px 16px; font-size: 13px; font-weight: 500; color: var(--text-muted);
+  border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap;
+  text-decoration: none; transition: all 0.2s;
+}
+.nav-item:hover { color: var(--primary); }
+.nav-item.active { color: var(--primary); border-bottom-color: var(--primary); }
+.nav-item.panel-tab { color: var(--frontier); }
+.nav-item.panel-tab:hover { color: var(--frontier); opacity: 0.8; }
+.nav-item.panel-tab.active { color: var(--frontier); border-bottom-color: var(--frontier); }
+.nav-badge {
+  display: inline-block; background: var(--frontier); color: white;
+  border-radius: 10px; padding: 1px 6px; font-size: 10px; font-weight: 700;
+  margin-left: 4px; vertical-align: middle;
+}
+
+/* ── Layout ── */
+.container { max-width: 1100px; margin: 0 auto; padding: 32px; }
+.section { margin-bottom: 48px; scroll-margin-top: 60px; }
+.section-header {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 24px; padding-bottom: 12px; border-bottom: 2px solid var(--border);
+}
+.section-icon { font-size: 1.4rem; }
+.section-title { font-size: 1.25rem; font-weight: 700; }
+.section-count {
+  background: var(--primary-light); color: var(--primary);
+  border-radius: 12px; padding: 2px 8px; font-size: 12px; font-weight: 600;
+}
+
+/* ── Field Overview ── */
+.overview-card {
+  background: linear-gradient(135deg, #f0f7ff 0%, #f5f3ff 100%);
+  border-radius: var(--radius); padding: 28px 32px;
+  border: 1px solid #c7d2fe; box-shadow: var(--shadow);
+}
+.overview-text { font-size: 15px; line-height: 1.9; color: var(--text); }
+.overview-placeholder {
+  text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px;
+  border: 2px dashed var(--border); border-radius: var(--radius);
+}
+
+/* ── Graph ── */
+.graph-card {
+  background: var(--card); border-radius: var(--radius); padding: 24px;
+  box-shadow: var(--shadow); overflow-x: auto;
+}
+.mermaid { text-align: center; }
+
+/* ── Timeline (Foundation) ── */
+.timeline { position: relative; padding-left: 32px; }
+.timeline::before {
+  content: ''; position: absolute; left: 10px; top: 0; bottom: 0;
+  width: 2px; background: linear-gradient(to bottom, var(--primary), #c7d2fe);
+}
+.timeline-item { position: relative; margin-bottom: 28px; }
+.timeline-item::before {
+  content: ''; position: absolute; left: -26px; top: 8px;
+  width: 12px; height: 12px; border-radius: 50%;
+  background: white; border: 2px solid var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+.timeline-item.key::before {
+  background: var(--primary); width: 16px; height: 16px; left: -28px; top: 6px;
+}
+.timeline-card {
+  background: var(--card); border-radius: var(--radius); padding: 18px 20px;
+  box-shadow: var(--shadow); border-left: 3px solid transparent;
+  transition: all 0.2s;
+}
+.timeline-card:hover { box-shadow: var(--shadow-hover); transform: translateX(2px); }
+.timeline-card.key { border-left-color: var(--primary); }
+.timeline-year {
+  font-size: 11px; font-weight: 700; color: var(--primary);
+  letter-spacing: 1px; margin-bottom: 4px;
+}
+.timeline-title { font-size: 1rem; font-weight: 600; margin-bottom: 6px; }
+.timeline-title a { color: var(--text); text-decoration: none; }
+.timeline-title a:hover { color: var(--primary); }
+.timeline-meta { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; }
+.timeline-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+.pill {
+  font-size: 11px; padding: 3px 8px; border-radius: 8px; font-weight: 500;
+}
+.pill-solved { background: #dcfce7; color: #166534; }
+.pill-left { background: #fee2e2; color: #991b1b; }
+.pill-cite { background: #fef3c7; color: #92400e; }
+.key-badge {
+  display: inline-block; background: var(--primary); color: white;
+  font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle;
+}
+
+/* ── Frontier Cards ── */
+.frontier-grid { display: grid; gap: 20px; }
+.frontier-card {
+  background: var(--card); border-radius: var(--radius); padding: 20px;
+  box-shadow: var(--shadow); border-top: 3px solid var(--frontier);
+}
+.frontier-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 14px; }
+.frontier-title { font-size: 1rem; font-weight: 600; }
+.frontier-title a { color: var(--text); text-decoration: none; }
+.frontier-title a:hover { color: var(--frontier); }
+.rating-badge {
+  flex-shrink: 0; background: var(--frontier-light); color: var(--frontier);
+  border-radius: 8px; padding: 4px 10px; font-size: 13px; font-weight: 700;
+  white-space: nowrap;
+}
+.rating-badge.high { background: #dcfce7; color: #166534; }
+.rating-badge.mid { background: #fef9c3; color: #854d0e; }
+.rating-badge.low { background: #fee2e2; color: #991b1b; }
+.reviews-wrap { display: grid; gap: 10px; margin-top: 12px; }
+.review-item {
+  background: var(--bg); border-radius: 8px; padding: 12px 14px;
+  border-left: 3px solid var(--border);
+}
+.review-rating { font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; }
+.review-pro { color: #166534; font-size: 13px; margin-bottom: 4px; }
+.review-con { color: #991b1b; font-size: 13px; margin-bottom: 4px; }
+.review-related { margin-top: 8px; }
+.review-related-label { font-size: 11px; color: var(--frontier); font-weight: 600; }
+.related-tags { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+.related-tag {
+  background: var(--frontier-light); color: var(--frontier);
+  font-size: 11px; padding: 2px 7px; border-radius: 6px;
+}
+
+/* ── Reading List ── */
+.reading-list { display: grid; gap: 10px; }
+.reading-item {
+  background: var(--card); border-radius: 10px; padding: 14px 16px;
+  box-shadow: var(--shadow); display: flex; align-items: flex-start; gap: 12px;
+}
+.reading-num {
+  flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+  background: var(--primary-light); color: var(--primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+}
+.reading-body { flex: 1; min-width: 0; }
+.reading-title { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+.reading-title a { color: var(--text); text-decoration: none; }
+.reading-title a:hover { color: var(--primary); }
+.reading-reason { font-size: 12px; color: var(--text-muted); }
+.reading-type {
+  flex-shrink: 0; font-size: 10px; padding: 2px 7px; border-radius: 6px; font-weight: 600;
+}
+.type-foundation { background: #dbeafe; color: #1e40af; }
+.type-frontier { background: var(--frontier-light); color: var(--frontier); }
+.type-recommended { background: #fef3c7; color: #92400e; }
+
+/* ── Resources ── */
+.resources-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+.resource-section { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+.resource-section-title {
+  font-size: 13px; font-weight: 700; color: var(--text-muted);
+  letter-spacing: 1px; margin-bottom: 14px; display: flex; align-items: center; gap: 6px;
+}
+.resource-item { padding: 10px 0; border-bottom: 1px solid var(--border); }
+.resource-item:last-child { border-bottom: none; padding-bottom: 0; }
+.resource-name { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.resource-name a { color: var(--text); text-decoration: none; }
+.resource-name a:hover { color: var(--primary); }
+.resource-meta { font-size: 12px; color: var(--text-muted); display: flex; gap: 8px; }
+.stars { color: var(--warning); }
+
+/* ── Top Authors / Labs ── */
+.authors-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.author-card {
+  background: var(--card); border-radius: var(--radius); padding: 16px 20px;
+  box-shadow: var(--shadow); display: flex; align-items: flex-start; gap: 12px;
+  transition: all 0.2s;
+}
+.author-card:hover { box-shadow: var(--shadow-hover); }
+.author-rank {
+  flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary), var(--frontier));
+  color: white; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700;
+}
+.author-body { flex: 1; min-width: 0; }
+.author-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+.author-name a { color: var(--text); text-decoration: none; }
+.author-name a:hover { color: var(--primary); }
+.author-institution { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; }
+.author-recent { font-size: 12px; color: var(--text-muted); font-style: italic; line-height: 1.5; }
+.author-count {
+  flex-shrink: 0; text-align: center;
+  font-size: 18px; font-weight: 700; color: var(--primary); line-height: 1.1;
+}
+.author-count span { display: block; font-size: 10px; font-weight: 400; color: var(--text-muted); }
+.authors-placeholder {
+  text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px;
+  border: 2px dashed var(--border); border-radius: var(--radius);
+}
+
+/* ── View Panels (最新动态 / 我的笔记) ── */
+.view-panel {
+  display: none; max-width: 1100px; margin: 0 auto; padding: 32px;
+}
+.view-panel.active { display: block; }
+
+/* Latest Updates */
+.updates-placeholder {
+  text-align: center; padding: 80px 32px; color: var(--text-muted);
+}
+.updates-placeholder-icon { font-size: 3rem; margin-bottom: 16px; }
+.updates-placeholder-text {
+  font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; color: var(--text);
+}
+.updates-placeholder-hint {
+  font-size: 14px; line-height: 1.7;
+  background: var(--primary-light); border-radius: var(--radius);
+  padding: 16px 24px; display: inline-block; text-align: left; max-width: 480px;
+}
+.updates-placeholder-hint code {
+  background: white; padding: 2px 6px; border-radius: 4px;
+  font-family: monospace; font-size: 13px; color: var(--primary);
+}
+.update-batch { margin-bottom: 32px; }
+.update-batch-header {
+  font-size: 12px; font-weight: 700; color: var(--text-muted); letter-spacing: 1px;
+  text-transform: uppercase; margin-bottom: 12px; padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.update-item {
+  background: var(--card); border-radius: var(--radius); padding: 16px 20px;
+  box-shadow: var(--shadow); margin-bottom: 10px; border-left: 3px solid var(--frontier);
+  transition: all 0.2s;
+}
+.update-item:hover { box-shadow: var(--shadow-hover); }
+.update-date { font-size: 11px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px; margin-bottom: 4px; }
+.update-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.update-title a { color: var(--text); text-decoration: none; }
+.update-title a:hover { color: var(--frontier); }
+.update-summary { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
+
+/* ── Chat Panel (智能助手) ── */
+.chat-panel { max-width: 860px; }
+.chat-server-hint {
+  font-size: 12px; color: var(--text-muted); margin-bottom: 16px;
+  background: var(--primary-light); border-radius: 8px; padding: 10px 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.chat-server-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; flex-shrink: 0;
+  transition: background 0.3s;
+}
+.chat-server-dot.online { background: var(--social); box-shadow: 0 0 0 3px #bbf7d0; }
+.chat-messages {
+  min-height: 380px; max-height: 480px; overflow-y: auto;
+  background: var(--bg); border-radius: var(--radius);
+  border: 1px solid var(--border); padding: 20px; margin-bottom: 12px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.chat-welcome {
+  text-align: center; color: var(--text-muted); padding: 40px 20px;
+  font-size: 14px; line-height: 2;
+}
+.chat-welcome-icon { font-size: 2.5rem; margin-bottom: 10px; }
+.chat-msg {
+  display: flex; gap: 10px; max-width: 85%;
+}
+.chat-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+.chat-msg.agent { align-self: flex-start; }
+.chat-avatar {
+  flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+}
+.chat-msg.user .chat-avatar { background: var(--primary); }
+.chat-msg.agent .chat-avatar { background: linear-gradient(135deg, var(--frontier), var(--primary)); }
+.chat-bubble {
+  padding: 10px 14px; border-radius: 16px; font-size: 13px; line-height: 1.7;
+  white-space: pre-wrap; word-break: break-word;
+}
+.chat-msg.user .chat-bubble {
+  background: var(--primary); color: white; border-top-right-radius: 4px;
+}
+.chat-msg.agent .chat-bubble {
+  background: var(--card); color: var(--text); border-top-left-radius: 4px;
+  border: 1px solid var(--border); box-shadow: var(--shadow);
+}
+.chat-bubble.thinking {
+  color: var(--text-muted); font-style: italic;
+  display: flex; align-items: center; gap: 8px;
+}
+.chat-bubble.action-done {
+  border-left: 3px solid var(--social);
+}
+.thinking-dots { display: flex; gap: 4px; }
+.thinking-dots span {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted);
+  animation: dot-bounce 1.2s infinite;
+}
+.thinking-dots span:nth-child(2) { animation-delay: 0.2s; }
+.thinking-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dot-bounce {
+  0%, 80%, 100% { transform: scale(0.8); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+.chat-refresh-hint {
+  margin-top: 8px; font-size: 12px; color: var(--social);
+  background: #f0fdf4; border-radius: 8px; padding: 8px 12px;
+  display: none;
+}
+.chat-quickactions { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.chat-chip {
+  font-size: 12px; padding: 5px 12px; border-radius: 16px; cursor: pointer;
+  background: var(--card); border: 1px solid var(--border); color: var(--text-muted);
+  transition: all 0.15s; white-space: nowrap;
+}
+.chat-chip:hover {
+  background: var(--primary-light); border-color: var(--primary); color: var(--primary);
+}
+.chat-input-row {
+  display: flex; gap: 8px; align-items: flex-end;
+}
+.chat-input {
+  flex: 1; min-height: 44px; max-height: 120px;
+  border: 1px solid var(--border); border-radius: 12px;
+  padding: 10px 14px; font-size: 14px; line-height: 1.5; resize: none;
+  background: var(--card); color: var(--text); transition: border-color 0.2s;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif;
+}
+.chat-input:focus {
+  outline: none; border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+.btn {
+  padding: 9px 18px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  cursor: pointer; border: none; transition: all 0.2s;
+}
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: #1d4ed8; transform: translateY(-1px); }
+.btn-primary:disabled { background: #93c5fd; transform: none; cursor: not-allowed; }
+.chat-send-btn {
+  flex-shrink: 0; width: 44px; height: 44px; border-radius: 12px; padding: 0;
+  background: var(--primary); color: white; border: none; cursor: pointer;
+  font-size: 18px; display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.chat-send-btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+.chat-send-btn:disabled { background: #93c5fd; transform: none; cursor: not-allowed; }
+
+/* ── Social Actions Timeline ── */
+.social-timeline { display: flex; flex-direction: column; gap: 12px; }
+.social-action {
+  display: flex; align-items: flex-start; gap: 14px;
+  background: var(--card); border-radius: var(--radius); padding: 14px 18px;
+  box-shadow: var(--shadow); transition: all 0.2s;
+}
+.social-action:hover { box-shadow: var(--shadow-hover); }
+.social-dot {
+  flex-shrink: 0; width: 12px; height: 12px; border-radius: 50%; margin-top: 4px;
+}
+.social-dot.done, .social-dot.followed { background: var(--social); box-shadow: 0 0 0 3px #bbf7d0; }
+.social-dot.ready { background: var(--warning); box-shadow: 0 0 0 3px #fde68a; }
+.social-dot.skipped { background: #94a3b8; }
+.social-dot.demo { background: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+.social-body { flex: 1; min-width: 0; }
+.social-time {
+  font-size: 11px; color: var(--text-muted); font-weight: 600;
+  letter-spacing: 0.5px; margin-bottom: 3px;
+}
+.social-summary { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.social-reason { font-size: 12px; color: var(--text-muted); }
+.social-actions-row { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.social-btn {
+  font-size: 12px; padding: 4px 12px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--bg);
+  color: var(--social); cursor: pointer; font-weight: 500; transition: all 0.15s;
+  text-decoration: none; display: inline-block;
+}
+.social-btn:hover { background: var(--social-light); border-color: var(--social); }
+.social-btn.primary {
+  background: var(--social); color: white; border-color: var(--social);
+}
+.social-btn.primary:hover { background: #047857; }
+.social-status-tag {
+  flex-shrink: 0; font-size: 10px; padding: 2px 8px; border-radius: 6px; font-weight: 600;
+  margin-top: 2px; white-space: nowrap;
+}
+.tag-done, .tag-followed { background: #dcfce7; color: #166534; }
+.tag-ready { background: #fef3c7; color: #854d0e; }
+.tag-skipped { background: #f1f5f9; color: #64748b; }
+.tag-demo { background: var(--primary-light); color: var(--primary); }
+.social-draft-box {
+  margin-top: 8px; background: var(--bg); border-radius: 8px; padding: 10px 14px;
+  border-left: 3px solid var(--warning); font-size: 13px; color: var(--text);
+  line-height: 1.6;
+}
+
+/* ── Footer ── */
+.footer {
+  text-align: center; padding: 32px; color: var(--text-muted); font-size: 12px;
+  border-top: 1px solid var(--border); margin-top: 48px;
+}
+
+/* ── Smooth scroll ── */
+html { scroll-behavior: smooth; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="logo">✦ FRONTIERPILOT · 成长型知识库</div>
+    <h1>📍 Diffusion Models 知识库</h1>
+    <div class="header-sub">扩散模型 · 由 FrontierPilot Agent 持续维护</div>
+    <div class="badges">
+      <span class="badge">📚 6 篇奠基论文</span>
+      <span class="badge">🔬 5 篇前沿论文</span>
+      <span class="badge">📋 9 篇阅读清单</span>
+      <span class="badge">🌐 多平台资源</span>
+      
+      <span class="badge">⏱️ 2026-03-08 10:00</span>
+    </div>
+  </div>
+</div>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="nav-item active" href="#overview" onclick="showMain(event, 'overview')">📊 领域概况</a>
+    <a class="nav-item" href="#graph" onclick="showMain(event, 'graph')">🗺️ 知识图谱</a>
+    <a class="nav-item" href="#foundation" onclick="showMain(event, 'foundation')">📚 基础 Roadmap</a>
+    <a class="nav-item" href="#frontier" onclick="showMain(event, 'frontier')">🔬 前沿快照</a>
+    <a class="nav-item" href="#reading" onclick="showMain(event, 'reading')">📋 阅读清单</a>
+    <a class="nav-item" href="#resources" onclick="showMain(event, 'resources')">🌐 资源地图</a>
+    <a class="nav-item" href="#authors" onclick="showMain(event, 'authors')">🏛️ 领域强组</a>
+    <a class="nav-item panel-tab" href="#" onclick="showPanel(event, 'panel-updates')">📰 最新动态</a>
+    <a class="nav-item panel-tab" href="#" onclick="showPanel(event, 'panel-social')">🌐 社交行动<span class="nav-badge" style="background:var(--social)">4</span></a>
+    <a class="nav-item panel-tab" href="#" onclick="showPanel(event, 'panel-chat')">🤖 智能助手</a>
+  </div>
+</nav>
+
+<!-- ── 最新动态 Panel ── -->
+<div id="panel-updates" class="view-panel">
+  <div class="section-header">
+    <span class="section-icon">📰</span>
+    <span class="section-title">最新动态</span>
+    <span class="section-count">0 条更新</span>
+  </div>
+    <div class="updates-placeholder">
+    <div class="updates-placeholder-icon">🔔</div>
+    <div class="updates-placeholder-text">OpenClaw 将定期监测最新动态</div>
+    <div class="updates-placeholder-hint">
+      当有新论文发表时，内容将自动追加到此处。<br><br>
+      触发方式：在 OpenClaw 中输入<br>
+      <code>帮我更新 [topic] 的最新动态</code>
+    </div>
+  </div>
+</div>
+
+<!-- ── 社交行动 Panel ── -->
+<div id="panel-social" class="view-panel">
+  <div class="section-header">
+    <span class="section-icon">🌐</span>
+    <span class="section-title">社交行动</span>
+    <span class="section-count">5 次操作</span>
+    <span style="font-size:12px;color:var(--text-muted);margin-left:auto">FrontierPilot 帮你进圈子</span>
+  </div>
+    <div class="social-timeline">
+  <div class="social-action">
+    <div class="social-dot done"></div>
+    <div class="social-body">
+      <div class="social-time">2026-03-08 10:15 · xiaohongshu</div>
+      <div class="social-summary">小红书搜索「扩散模型 学习」→ 找到 23 篇相关帖子</div>
+      
+      
+    </div>
+    <span class="social-status-tag tag-done">已完成</span>
+  </div>
+  <div class="social-action">
+    <div class="social-dot followed"></div>
+    <div class="social-body">
+      <div class="social-time">2026-03-08 10:17 · xiaohongshu</div>
+      <div class="social-summary">关注用户 <a href="https://www.xiaohongshu.com/user/profile/u123456" target="_blank" style="color:var(--social)">李沐_学习圈</a></div>
+      <div class="social-reason">发布了 12 篇扩散模型学习笔记，互动活跃</div>
+      
+    </div>
+    <span class="social-status-tag tag-followed">已关注</span>
+  </div>
+  <div class="social-action">
+    <div class="social-dot followed"></div>
+    <div class="social-body">
+      <div class="social-time">2026-03-08 10:17 · xiaohongshu</div>
+      <div class="social-summary">关注用户 <a href="https://www.xiaohongshu.com/user/profile/u789012" target="_blank" style="color:var(--social)">AIGC研究生日常</a></div>
+      <div class="social-reason">专注扩散模型应用，粉丝 8k</div>
+      
+    </div>
+    <span class="social-status-tag tag-followed">已关注</span>
+  </div>
+  <div class="social-action">
+    <div class="social-dot skipped"></div>
+    <div class="social-body">
+      <div class="social-time">2026-03-08 10:17 · xiaohongshu</div>
+      <div class="social-summary">关注用户 <a href="https://www.xiaohongshu.com/user/profile/u345678" target="_blank" style="color:var(--social)">CV_Paper_Daily</a></div>
+      <div class="social-reason">每日更新 AIGC 论文速递，已关注</div>
+      
+    </div>
+    <span class="social-status-tag tag-skipped">已跳过</span>
+  </div>
+  <div class="social-action">
+    <div class="social-dot ready"></div>
+    <div class="social-body">
+      <div class="social-time">2026-03-08 10:20 · wechat_group</div>
+      <div class="social-summary">发现微信群「AIGC 扩散模型交流群」· QR 已解码</div>
+      <div class="social-reason">来源：<a href="https://www.xiaohongshu.com/explore/demo_post" target="_blank" style="color:var(--text-muted);font-size:11px">https://www.xiaohongshu.com/explore/demo_post…</a></div>
+      <div class="social-draft-box">💬 入群申请语（已就绪）：您好！我是北大的研究生，正在研究扩散模型视频生成方向。看到这个群非常对口，希望能加入和大家交流学习，也可以分享我们组的最新进展。感谢！</div><div class="social-actions-row"><a class="social-btn primary" href="weixin://groupjoin/DEMO_LINK">📱 打开微信</a><button class="social-btn" onclick="navigator.clipboard.writeText('您好！我是北大的研究生，正在研究扩散模型视频生成方向。看到这个群非常对口，希望能加入和大家交流学习，也可以分享我们组的最新进展。感谢！')" title="复制申请语">📋 复制申请语</button></div>
+    </div>
+    <span class="social-status-tag tag-ready">待确认</span>
+  </div>
+  </div>
+</div>
+
+<!-- ── 智能助手 Panel ── -->
+<div id="panel-chat" class="view-panel">
+  <div class="chat-panel">
+    <div class="section-header">
+      <span class="section-icon">🤖</span>
+      <span class="section-title">智能助手 · Diffusion Models</span>
+    </div>
+
+    <div class="chat-server-hint">
+      <div id="chat-dot" class="chat-server-dot"></div>
+      <span id="chat-status-text">正在连接 OpenClaw 助手（localhost:7779）…</span>
+    </div>
+
+    <div id="chat-messages" class="chat-messages">
+      <div class="chat-welcome">
+        <div class="chat-welcome-icon">🤖</div>
+        你好！我是 FrontierPilot 智能助手，由 OpenClaw 驱动。<br>
+        你可以让我更新知识库、添加论文、分析最新进展。<br><br>
+        <span style="font-size:12px;color:var(--text-muted)">试试下面的快捷指令 ↓</span>
+      </div>
+    </div>
+
+    <div id="chat-refresh-hint" class="chat-refresh-hint">
+      ✅ 知识库已更新！<a href="javascript:location.reload()" style="color:var(--social);font-weight:600;margin-left:4px">点击刷新页面</a>查看最新内容
+    </div>
+
+    <div class="chat-quickactions">
+      <span class="chat-chip" onclick="fillInput('更新 Diffusion Models 的最新动态')">🔄 更新最新动态</span>
+      <span class="chat-chip" onclick="fillInput('把这篇论文添加到知识图谱：')">➕ 添加论文</span>
+      <span class="chat-chip" onclick="fillInput('分析 arXiv 论文：')">🔍 分析 arXiv 论文</span>
+      <span class="chat-chip" onclick="fillInput('推荐 Diffusion Models 方向的入门阅读路径')">📚 入门路径推荐</span>
+    </div>
+
+    <div class="chat-input-row">
+      <textarea id="chat-input" class="chat-input" rows="1"
+        placeholder="输入指令，例如：把 Stable Diffusion 3 添加到知识图谱…"></textarea>
+      <button id="chat-send-btn" class="chat-send-btn" onclick="sendChat()">↑</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Main View ── -->
+<div id="view-main" class="container">
+
+  <!-- Field Overview -->
+  <section class="section" id="overview">
+    <div class="section-header">
+      <span class="section-icon">📊</span>
+      <span class="section-title">领域全景 · 专家视角导读</span>
+    </div>
+        <div class="overview-card">
+      <div class="overview-text"><p style='margin-bottom:12px'>扩散模型的本质问题很简单：如何将一张纯噪声图像逐步「去噪」成一张有意义的图片？这个看似简单的问题，在 2020-2022 年间引发了生成式 AI 的最大一次范式转变。</p><p style='margin-bottom:12px'>2024 年的主要共识是：扩散模型已经赢得了图像生成的主战场，但计算效率仍是核心痛点。Reviewer 在几乎所有顶会论文中都会追问「采样速度」——从 DDPM 的 1000 步采样到 DDIM 的 50 步、再到 Consistency Models 的单步生成，这条效率优化主线贯穿至今。</p><p style='margin-bottom:12px'>当前最大的争议点有两个：第一，Flow Matching 和传统 score-based 方法谁更有前途？（多数 reviewer 认为 flow matching 的训练目标更简洁，但实验优势仍不够显著）第二，扩散模型在视频生成中的可扩展性如何？（Sora 的成功让所有人都在追赶，但对显存和训练时间的需求让学术界难以复现）</p><p style='margin-bottom:12px'>新手建议：先读 DDPM（理解核心数学），再读 DDIM（理解加速），最后读 Latent Diffusion（理解为什么 Stable Diffusion 能在消费级 GPU 上跑）。这三篇按顺序读完后，你对整个领域的 80% 内容都会有基本判断力。</p></div>
+    </div>
+  </section>
+
+  <!-- Knowledge Graph -->
+  <section class="section" id="graph">
+    <div class="section-header">
+      <span class="section-icon">🗺️</span>
+      <span class="section-title">领域知识图谱</span>
+    </div>
+    <div class="graph-card">
+      <div class="mermaid">
+flowchart LR
+  classDef foundation fill:#dbeafe,stroke:#2563eb,color:#1e40af
+  classDef key fill:#2563eb,stroke:#1e40af,color:white
+  classDef frontier fill:#f5f3ff,stroke:#7c3aed,color:#4c1d95
+
+  subgraph cluster_sde["🔵 Score-based / SDE Methods"]
+    style cluster_sde fill:#eff6ff,stroke:#2563eb
+    N2019_NCSN["2019 NCSN\n⭐ 4k"]:::foundation
+    N2020_DDPM["2020 DDPM\n⭐ 18k"]:::key
+    N2021_DDIM["2021 DDIM\n⭐ 6k"]:::key
+  end
+
+  subgraph cluster_flow["🟣 Flow-based Samplers"]
+    style cluster_flow fill:#faf5ff,stroke:#7c3aed
+    N2022_EDM["2022 EDM\n⭐ 3k"]:::foundation
+    N2023_FM["2023 Flow Matching"]:::frontier
+    N2023_CM["2023 Consistency\nModels\n⭐ 2k"]:::frontier
+  end
+
+  subgraph cluster_latent["🟢 Latent / Efficient Methods"]
+    style cluster_latent fill:#f0fdf4,stroke:#059669
+    N2022_LDM["2022 LDM / SD\n⭐ 12k"]:::key
+    N2023_DiT["2023 DiT\n(Peebles et al.)"]:::frontier
+  end
+
+  N2019_NCSN --> N2020_DDPM
+  N2020_DDPM --> N2021_DDIM
+  N2020_DDPM --> N2022_LDM
+  N2020_DDPM --> N2023_FM
+  N2021_DDIM --> N2022_EDM
+  N2021_DDIM --> N2023_CM
+  N2022_LDM --> N2023_DiT
+      </div>
+    </div>
+  </section>
+
+  <!-- Foundation -->
+  <section class="section" id="foundation">
+    <div class="section-header">
+      <span class="section-icon">📚</span>
+      <span class="section-title">基础 Roadmap · 领域演进</span>
+      <span class="section-count">6 个节点</span>
+    </div>
+    <div class="timeline">
+      <div class="timeline-item">
+        <div class="timeline-card">
+          <div class="timeline-year">2015</div>
+          <div class="timeline-title"><a href="https://arxiv.org/abs/1503.03585" target="_blank">Deep Unsupervised Learning using Nonequilibrium Thermodynamics</a></div>
+          <div class="timeline-meta">Sohl-Dickstein et al.</div>
+          <div style="font-size:13px;color:var(--text-muted)">首次将热力学非平衡过程引入生成模型，提出扩散过程的理论基础</div>
+          <div class="timeline-pills"><span class="pill pill-solved">✅ 为扩散生成模型建立数学基础</span><span class="pill pill-left">⚠️ 遗留：图像质量远不如 GAN，纯理论验证</span><span class="pill pill-cite">⭐ 3k 引用</span></div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-card">
+          <div class="timeline-year">2019</div>
+          <div class="timeline-title"><a href="https://arxiv.org/abs/1907.05600" target="_blank">Generative Modeling by Estimating Gradients of the Data Distribution (NCSN)</a></div>
+          <div class="timeline-meta">Song &amp; Ermon</div>
+          <div style="font-size:13px;color:var(--text-muted)">提出 score-based 生成范式，证明去噪分数匹配可以高质量采样</div>
+          <div class="timeline-pills"><span class="pill pill-solved">✅ 建立 score-based 生成模型方法论</span><span class="pill pill-left">⚠️ 遗留：与 DDPM 的连接尚未清晰</span><span class="pill pill-cite">⭐ 4k 引用</span></div>
+        </div>
+      </div>
+      <div class="timeline-item key">
+        <div class="timeline-card key">
+          <div class="timeline-year">2020</div>
+          <div class="timeline-title"><a href="https://arxiv.org/abs/2006.11239" target="_blank">Denoising Diffusion Probabilistic Models (DDPM)</a><span class="key-badge">必读</span></div>
+          <div class="timeline-meta">Ho et al., NeurIPS 2020</div>
+          <div style="font-size:13px;color:var(--text-muted)">将扩散过程与 Markov chain 结合，确立现代扩散模型的核心范式</div>
+          <div class="timeline-pills"><span class="pill pill-solved">✅ 首次实现超越 GAN 的图像生成质量</span><span class="pill pill-left">⚠️ 遗留：采样极慢（需 1000 步），计算开销巨大</span><span class="pill pill-cite">⭐ 18k 引用</span></div>
+        </div>
+      </div>
+      <div class="timeline-item key">
+        <div class="timeline-card key">
+          <div class="timeline-year">2021</div>
+          <div class="timeline-title"><a href="https://arxiv.org/abs/2010.02502" target="_blank">Denoising Diffusion Implicit Models (DDIM)</a><span class="key-badge">必读</span></div>
+          <div class="timeline-meta">Song et al., ICLR 2021</div>
+          <div style="font-size:13px;color:var(--text-muted)">将采样过程从随机 Markov 改为确定性过程，实现 20× 加速</div>
+          <div class="timeline-pills"><span class="pill pill-solved">✅ 将采样步数从 1000 降至 50，使实际应用成为可能</span><span class="pill pill-left">⚠️ 遗留：仍需多步采样，实时生成仍有差距</span><span class="pill pill-cite">⭐ 5k 引用</span></div>
+        </div>
+      </div>
+      <div class="timeline-item key">
+        <div class="timeline-card key">
+          <div class="timeline-year">2022</div>
+          <div class="timeline-title"><a href="https://arxiv.org/abs/2112.10752" target="_blank">High-Resolution Image Synthesis with Latent Diffusion Models (LDM)</a><span class="key-badge">必读</span></div>
+          <div class="timeline-meta">Rombach et al., CVPR 2022</div>
+          <div style="font-size:13px;color:var(--text-muted)">将扩散过程压缩到低维 latent space，大幅降低计算成本，催生 Stable Diffusion</div>
+          <div class="timeline-pills"><span class="pill pill-solved">✅ 使高分辨率生成在消费级 GPU 上可行</span><span class="pill pill-left">⚠️ 遗留：latent 空间的表达能力有上限</span><span class="pill pill-cite">⭐ 12k 引用</span></div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-card">
+          <div class="timeline-year">2023</div>
+          <div class="timeline-title"><a href="https://arxiv.org/abs/2303.01469" target="_blank">Consistency Models</a></div>
+          <div class="timeline-meta">Song et al., ICML 2023</div>
+          <div style="font-size:13px;color:var(--text-muted)">训练模型直接从任意噪声级别映射到干净图像，实现单步生成</div>
+          <div class="timeline-pills"><span class="pill pill-solved">✅ 单步生成，速度提升数十倍</span><span class="pill pill-left">⚠️ 遗留：训练不稳定，质量略低于多步方法</span><span class="pill pill-cite">⭐ 2k 引用</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Frontier -->
+  <section class="section" id="frontier">
+    <div class="section-header">
+      <span class="section-icon">🔬</span>
+      <span class="section-title">前沿快照 · 同行评审视角</span>
+      <span class="section-count">5 篇论文</span>
+    </div>
+    <div class="frontier-grid">
+      <div class="frontier-card">
+        <div class="frontier-card-header">
+          <div class="frontier-title"><a href="https://openreview.net/forum?id=PqvMRDCJT9t" target="_blank">Flow Matching for Generative Modeling</a>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">ICLR 2023</div>
+          </div>
+          <div class="rating-badge high">⭐ 7.3/10</div>
+        </div>
+        <div class="reviews-wrap">
+          <div class="review-item">
+            <div class="review-rating">Reviewer · Rating 8</div>
+            <div class="review-pro">✅ Training objective 比 DDPM 更简单优雅，理论推导清晰。在 ImageNet 256×256 达到 SOTA FID。</div>
+            <div class="review-con">⚠️ 缺少与 Consistency Models 的系统比较。Classifier-free guidance 的兼容性未讨论。</div>
+            <div class="review-related"><div class="review-related-label">🔗 Reviewer 推荐比较：</div><div class="related-tags"><span class="related-tag">📎 Consistency Models</span><span class="related-tag">📎 Rectified Flow</span><span class="related-tag">📎 EDM (Karras et al.)</span></div></div>
+          </div>          <div class="review-item">
+            <div class="review-rating">Reviewer · Rating 6</div>
+            <div class="review-pro">✅ 方法简洁，实现容易，有实用价值。</div>
+            <div class="review-con">⚠️ 与 score-based SDE 的关系论述不够清晰，创新性存疑。</div>
+            <div class="review-related"><div class="review-related-label">🔗 Reviewer 推荐比较：</div><div class="related-tags"><span class="related-tag">📎 Score SDE (Song et al. 2021)</span><span class="related-tag">📎 DDPM</span></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="frontier-card">
+        <div class="frontier-card-header">
+          <div class="frontier-title"><a href="https://arxiv.org/abs/2212.09748" target="_blank">Scalable Diffusion Models with Transformers (DiT)</a>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">ICCV 2023</div>
+          </div>
+          <div class="rating-badge high">⭐ 8.1/10</div>
+        </div>
+        <div class="reviews-wrap">
+          <div class="review-item">
+            <div class="review-rating">Reviewer · Rating 8</div>
+            <div class="review-pro">✅ 用 Transformer 替换 U-Net 作为主干，实验证明 scaling law 在扩散模型中有效。结果非常令人信服。</div>
+            <div class="review-con">⚠️ 计算成本高昂，学术界难以复现 large scale 实验。</div>
+            <div class="review-related"><div class="review-related-label">🔗 Reviewer 推荐比较：</div><div class="related-tags"><span class="related-tag">📎 U-Net (Ronneberger et al.)</span><span class="related-tag">📎 ViT (Dosovitskiy et al.)</span><span class="related-tag">📎 Latent Diffusion</span></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="frontier-card">
+        <div class="frontier-card-header">
+          <div class="frontier-title"><a href="https://arxiv.org/abs/2303.01469" target="_blank">Consistency Models</a>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">ICML 2023</div>
+          </div>
+          <div class="rating-badge high">⭐ 8.5/10</div>
+        </div>
+        <div class="reviews-wrap">
+          <div class="review-item">
+            <div class="review-rating">Reviewer · Rating 9</div>
+            <div class="review-pro">✅ 将扩散过程的多步采样压缩为单步，理论创新突出。FID 和速度均优于 DDIM 50-step。</div>
+            <div class="review-con">⚠️ 训练稳定性问题未充分讨论。与 score distillation 的联系尚待厘清。</div>
+            <div class="review-related"><div class="review-related-label">🔗 Reviewer 推荐比较：</div><div class="related-tags"><span class="related-tag">📎 EDM (Karras et al. 2022)</span><span class="related-tag">📎 Score Distillation Sampling</span><span class="related-tag">📎 DDIM</span></div></div>
+          </div>          <div class="review-item">
+            <div class="review-rating">Reviewer · Rating 8</div>
+            <div class="review-pro">✅ 单步生成在实时应用场景极具价值，训练目标简洁。</div>
+            <div class="review-con">⚠️ 在高分辨率（ImageNet 512×512）的质量与 DDPM 差距仍明显。</div>
+            <div class="review-related"><div class="review-related-label">🔗 Reviewer 推荐比较：</div><div class="related-tags"><span class="related-tag">📎 Progressive Distillation</span><span class="related-tag">📎 Denoising Diffusion Samplers</span></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="frontier-card">
+        <div class="frontier-card-header">
+          <div class="frontier-title"><a href="https://arxiv.org/abs/2206.00364" target="_blank">Elucidating the Design Space of Diffusion-Based Generative Models (EDM)</a>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">NeurIPS 2022</div>
+          </div>
+          <div class="rating-badge high">⭐ 9.0/10</div>
+        </div>
+        <div class="reviews-wrap">
+          <div class="review-item">
+            <div class="review-rating">Reviewer · Rating 9</div>
+            <div class="review-pro">✅ 系统性分析扩散模型中预条件、采样方法、噪声调度等设计选项，极具参考价值。将多个已有方法统一到同一框架下比较，贡献扎实。</div>
+            <div class="review-con">⚠️ 工程贡献比理论贡献大，部分实验细节过于繁琐。</div>
+            <div class="review-related"><div class="review-related-label">🔗 Reviewer 推荐比较：</div><div class="related-tags"><span class="related-tag">📎 DDPM</span><span class="related-tag">📎 NCSN++</span><span class="related-tag">📎 Score SDE</span></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="frontier-card">
+        <div class="frontier-card-header">
+          <div class="frontier-title"><a href="https://openreview.net/forum?id=St1giarCHLP" target="_blank">Denoising Diffusion Implicit Models (DDIM)</a>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:3px">ICLR 2021</div>
+          </div>
+          <div class="rating-badge high">⭐ 8.0/10</div>
+        </div>
+        <div class="reviews-wrap">
+          <div class="review-item">
+            <div class="review-rating">Reviewer · Rating 8</div>
+            <div class="review-pro">✅ 将随机采样转化为确定性过程，20× 加速且支持语义插值，工程影响极大。</div>
+            <div class="review-con">⚠️ 理论分析较浅，主要是 DDPM 的工程改进。与 ODE solver 视角的联系未充分挖掘。</div>
+            <div class="review-related"><div class="review-related-label">🔗 Reviewer 推荐比较：</div><div class="related-tags"><span class="related-tag">📎 Neural ODE</span><span class="related-tag">📎 DDPM</span><span class="related-tag">📎 Score SDE (concurrent work)</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Reading List -->
+  <section class="section" id="reading">
+    <div class="section-header">
+      <span class="section-icon">📋</span>
+      <span class="section-title">精选阅读清单</span>
+      <span class="section-count">9 篇</span>
+    </div>
+    <div class="reading-list">
+      <div class="reading-item">
+        <div class="reading-num">1</div>
+        <div class="reading-body">
+          <div class="reading-title"><a href="https://arxiv.org/abs/2006.11239" target="_blank">Denoising Diffusion Probabilistic Models (DDPM)</a></div>
+          <div class="reading-reason">必读入门论文，理解扩散模型的核心数学框架</div>
+        </div>
+        <span class="reading-type type-foundation">基础</span>
+      </div>
+      <div class="reading-item">
+        <div class="reading-num">2</div>
+        <div class="reading-body">
+          <div class="reading-title"><a href="https://arxiv.org/abs/2010.02502" target="_blank">Denoising Diffusion Implicit Models (DDIM)</a></div>
+          <div class="reading-reason">理解如何将采样从 1000 步加速到 50 步</div>
+        </div>
+        <span class="reading-type type-foundation">基础</span>
+      </div>
+      <div class="reading-item">
+        <div class="reading-num">3</div>
+        <div class="reading-body">
+          <div class="reading-title"><a href="https://arxiv.org/abs/2112.10752" target="_blank">Latent Diffusion Models (Stable Diffusion)</a></div>
+          <div class="reading-reason">理解为什么高分辨率生成可以在普通 GPU 上运行</div>
+        </div>
+        <span class="reading-type type-foundation">基础</span>
+      </div>
+      <div class="reading-item">
+        <div class="reading-num">4</div>
+        <div class="reading-body">
+          <div class="reading-title"><a href="https://openreview.net/forum?id=PqvMRDCJT9t" target="_blank">Flow Matching for Generative Modeling</a></div>
+          <div class="reading-reason">ICLR 2023 方向热点，比 DDPM 训练目标更简洁</div>
+        </div>
+        <span class="reading-type type-frontier">前沿</span>
+      </div>
+      <div class="reading-item">
+        <div class="reading-num">5</div>
+        <div class="reading-body">
+          <div class="reading-title"><a href="https://arxiv.org/abs/2212.09748" target="_blank">Scalable Diffusion Models with Transformers (DiT)</a></div>
+          <div class="reading-reason">验证 Transformer 在扩散模型中的 scaling law，Sora 的前驱工作</div>
+        </div>
+        <span class="reading-type type-frontier">前沿</span>
+      </div>
+      <div class="reading-item">
+        <div class="reading-num">6</div>
+        <div class="reading-body">
+          <div class="reading-title"><a href="https://arxiv.org/abs/2303.01469" target="_blank">Consistency Models</a></div>
+          <div class="reading-reason">ICML 2023 最佳论文候选；单步生成突破，速度与质量平衡的里程碑</div>
+        </div>
+        <span class="reading-type type-frontier">前沿</span>
+      </div>
+      <div class="reading-item">
+        <div class="reading-num">7</div>
+        <div class="reading-body">
+          <div class="reading-title"><a href="https://arxiv.org/abs/2206.00364" target="_blank">EDM: Elucidating the Design Space of Diffusion-Based Generative Models</a></div>
+          <div class="reading-reason">NeurIPS 2022 Outstanding Paper；系统性分析扩散模型所有设计选项，工程必读</div>
+        </div>
+        <span class="reading-type type-frontier">前沿</span>
+      </div>
+      <div class="reading-item">
+        <div class="reading-num">8</div>
+        <div class="reading-body">
+          <div class="reading-title"><a href="https://arxiv.org/abs/2209.03003" target="_blank">Rectified Flow</a></div>
+          <div class="reading-reason">来源：Reviewer 要求与之比较；Flow Matching 的直接相关工作，SD3 技术底座</div>
+        </div>
+        <span class="reading-type type-recommended">推荐</span>
+      </div>
+      <div class="reading-item">
+        <div class="reading-num">9</div>
+        <div class="reading-body">
+          <div class="reading-title"><a href="https://arxiv.org/abs/2011.13456" target="_blank">Score SDE: Score-Based Generative Modeling through Stochastic Differential Equations</a></div>
+          <div class="reading-reason">来源：Reviewer 推荐；将 NCSN 和 DDPM 统一在 SDE 框架下，理论深度最强</div>
+        </div>
+        <span class="reading-type type-recommended">推荐</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Resources -->
+  <section class="section" id="resources">
+    <div class="section-header">
+      <span class="section-icon">🌐</span>
+      <span class="section-title">资源地图</span>
+    </div>
+    <div class="resources-grid">
+      <div class="resource-section">
+        <div class="resource-section-title">💻 GitHub 开源实现</div>
+        <div class="resource-item">
+          <div class="resource-name"><a href="https://github.com/CompVis/stable-diffusion" target="_blank">🐙 CompVis/stable-diffusion</a></div>
+          <div class="resource-meta"><span class="stars">⭐ 52k</span><span>Latent Diffusion Models 官方实现，Stable Diffusion 原始代码</span></div>
+        </div>        <div class="resource-item">
+          <div class="resource-name"><a href="https://github.com/AUTOMATIC1111/stable-diffusion-webui" target="_blank">🐙 AUTOMATIC1111/stable-diffusion-webui</a></div>
+          <div class="resource-meta"><span class="stars">⭐ 134k</span><span>最流行的 Stable Diffusion Web UI，功能最全面</span></div>
+        </div>        <div class="resource-item">
+          <div class="resource-name"><a href="https://github.com/lucidrains/denoising-diffusion-pytorch" target="_blank">🐙 lucidrains/denoising-diffusion-pytorch</a></div>
+          <div class="resource-meta"><span class="stars">⭐ 8k</span><span>教学向 PyTorch 实现，代码简洁，适合新手学习原理</span></div>
+        </div>        <div class="resource-item">
+          <div class="resource-name"><a href="https://github.com/huggingface/diffusers" target="_blank">🐙 huggingface/diffusers</a></div>
+          <div class="resource-meta"><span class="stars">⭐ 24k</span><span>HuggingFace 官方扩散模型库，集成最新模型，工业级可用</span></div>
+        </div>
+      </div>
+      <div class="resource-section">
+        <div class="resource-section-title">📺 Bilibili 中文教程</div>
+        <div class="resource-item">
+          <div class="resource-name"><a href="https://www.bilibili.com/video/BV1b541197HX" target="_blank">📺 李沐·DDPM 论文精读【论文精读】</a></div>
+          <div class="resource-meta"><span>▶ 180万 播放</span></div>
+        </div>        <div class="resource-item">
+          <div class="resource-name"><a href="https://www.bilibili.com/video/BV1RG4y197h5" target="_blank">📺 扩散模型从入门到精通（10集）</a></div>
+          <div class="resource-meta"><span>▶ 45万 播放</span></div>
+        </div>        <div class="resource-item">
+          <div class="resource-name"><a href="https://www.bilibili.com/video/BV1gA411D7E3" target="_blank">📺 【熟肉】Understanding Diffusion Models: 官方讲解中字</a></div>
+          <div class="resource-meta"><span>▶ 28万 播放</span></div>
+        </div>
+      </div>
+      <div class="resource-section">
+        <div class="resource-section-title">📰 微信公众号文章</div>
+        <div class="resource-item">
+          <div class="resource-name"><a href="https://mp.weixin.qq.com/s/stable-diffusion-technical-deep-dive" target="_blank">📰 量子位·Stable Diffusion 完整技术解析：从原理到实践</a></div>
+        </div>        <div class="resource-item">
+          <div class="resource-name"><a href="https://mp.weixin.qq.com/s/diffusion-models-2024-survey" target="_blank">📰 机器之心·2024 生成模型综述：扩散模型的新进展</a></div>
+        </div>        <div class="resource-item">
+          <div class="resource-name"><a href="https://mp.weixin.qq.com/s/flow-matching-explained" target="_blank">📰 PaperWeekly·Flow Matching 详解：比 DDPM 更优雅的训练目标</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Top Authors / Labs -->
+  <section class="section" id="authors">
+    <div class="section-header">
+      <span class="section-icon">🏛️</span>
+      <span class="section-title">领域强组 · 活跃研究者</span>
+    </div>
+        <div class="authors-grid">
+    <div class="author-card">
+      <div class="author-rank">#1</div>
+      <div class="author-body">
+        <div class="author-name"><a href="https://yang-song.net" target="_blank">Yang Song</a></div>
+        <div class="author-institution">🏛️ OpenAI / Stanford University</div>
+        <div class="author-recent">近期：Score-based models, DDIM, Consistency Models, Flow Matching</div>
+      </div>
+      <div class="author-count">52<span>论文</span></div>
+    </div>
+    <div class="author-card">
+      <div class="author-rank">#2</div>
+      <div class="author-body">
+        <div class="author-name"><a href="https://scholar.google.com/citations?user=14gRbVgAAAAJ" target="_blank">Jonathan Ho</a></div>
+        <div class="author-institution">🏛️ Google DeepMind</div>
+        <div class="author-recent">近期：DDPM, Classifier-free guidance, Video Diffusion Models</div>
+      </div>
+      <div class="author-count">38<span>论文</span></div>
+    </div>
+    <div class="author-card">
+      <div class="author-rank">#3</div>
+      <div class="author-body">
+        <div class="author-name"><a href="https://scholar.google.com/citations?user=ygdQhrIAAAAJ" target="_blank">Robin Rombach</a></div>
+        <div class="author-institution">🏛️ Stability AI / LMU Munich</div>
+        <div class="author-recent">近期：Latent Diffusion Models, Stable Diffusion, ControlNet</div>
+      </div>
+      <div class="author-count">31<span>论文</span></div>
+    </div>
+    <div class="author-card">
+      <div class="author-rank">#4</div>
+      <div class="author-body">
+        <div class="author-name"><a href="https://scholar.google.com/citations?user=3VrWgWkAAAAJ" target="_blank">Tero Karras</a></div>
+        <div class="author-institution">🏛️ NVIDIA Research</div>
+        <div class="author-recent">近期：EDM, StyleGAN→Diffusion, Progressive training strategies</div>
+      </div>
+      <div class="author-count">44<span>论文</span></div>
+    </div>
+    <div class="author-card">
+      <div class="author-rank">#5</div>
+      <div class="author-body">
+        <div class="author-name"><a href="https://www.wpeebles.com" target="_blank">William Peebles</a></div>
+        <div class="author-institution">🏛️ OpenAI / UC Berkeley</div>
+        <div class="author-recent">近期：DiT (Diffusion Transformers), Sora architecture</div>
+      </div>
+      <div class="author-count">18<span>论文</span></div>
+    </div>
+    </div>
+  </section>
+
+</div>
+
+<div class="footer">
+  <strong>FrontierPilot</strong> · "一个课题，从小白到专家" · 成长型知识库 · 生成时间：2026-03-08 10:00
+</div>
+
+<script>
+mermaid.initialize({ startOnLoad: true, theme: 'base', themeVariables: {
+  primaryColor: '#dbeafe', primaryTextColor: '#1e40af', primaryBorderColor: '#2563eb',
+  lineColor: '#94a3b8', fontSize: '14px',
+  nodeBorder: '#2563eb',
+}});
+
+// ── Tab / Panel switching ──
+const viewMain = document.getElementById('view-main');
+const panels = document.querySelectorAll('.view-panel');
+const navItems = document.querySelectorAll('.nav-item');
+
+function showMain(evt, anchorId) {
+  if (evt) evt.preventDefault();
+  viewMain.style.display = 'block';
+  panels.forEach(p => { p.style.display = 'none'; p.classList.remove('active'); });
+  navItems.forEach(n => n.classList.remove('active'));
+  if (anchorId) {
+    const el = document.getElementById(anchorId);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const navLink = document.querySelector(`.nav-item[href="#${anchorId}"]`);
+    if (navLink) navLink.classList.add('active');
+  }
+}
+
+function showPanel(evt, panelId) {
+  if (evt) evt.preventDefault();
+  viewMain.style.display = 'none';
+  panels.forEach(p => { p.style.display = 'none'; p.classList.remove('active'); });
+  const panel = document.getElementById(panelId);
+  if (panel) { panel.style.display = 'block'; panel.classList.add('active'); }
+  navItems.forEach(n => n.classList.remove('active'));
+  const activeNav = document.querySelector(`.nav-item[onclick*="${panelId}"]`);
+  if (activeNav) activeNav.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── Nav active state on scroll (main view only) ──
+const sections = document.querySelectorAll('#view-main .section');
+const mainNavItems = Array.from(navItems).filter(n => !n.classList.contains('panel-tab'));
+const observer = new IntersectionObserver((entries) => {
+  if (viewMain.style.display === 'none') return;
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      mainNavItems.forEach(n => n.classList.remove('active'));
+      const active = document.querySelector(`.nav-item[href="#${e.target.id}"]`);
+      if (active) active.classList.add('active');
+    }
+  });
+}, { threshold: 0.2, rootMargin: '-60px 0px -60% 0px' });
+sections.forEach(s => observer.observe(s));
+
+// ── Chat (智能助手) ──
+const CHAT_SERVER = 'http://localhost:7779';
+const TOPIC_NAME = 'Diffusion Models';
+const chatMessages = document.getElementById('chat-messages');
+const chatInput = document.getElementById('chat-input');
+const chatSendBtn = document.getElementById('chat-send-btn');
+const chatDot = document.getElementById('chat-dot');
+const chatStatusText = document.getElementById('chat-status-text');
+const chatRefreshHint = document.getElementById('chat-refresh-hint');
+
+let serverOnline = false;
+let currentEs = null;   // active EventSource
+
+// ── 服务器心跳检测 ──
+function checkServer() {
+  fetch(CHAT_SERVER + '/ping')
+    .then(r => r.json())
+    .then(() => {
+      if (!serverOnline) {
+        serverOnline = true;
+        if (chatDot) chatDot.classList.add('online');
+        if (chatStatusText) chatStatusText.textContent = 'FrontierPilot 助手已连接 · localhost:7779';
+      }
+    })
+    .catch(() => {
+      serverOnline = false;
+      if (chatDot) chatDot.classList.remove('online');
+      if (chatStatusText) chatStatusText.textContent = '助手未连接 — 请先运行 chat_server.py';
+    });
+}
+checkServer();
+setInterval(checkServer, 8000);
+
+// ── DOM 操作工具 ──
+function removeWelcome() {
+  const w = chatMessages.querySelector('.chat-welcome');
+  if (w) w.remove();
+}
+
+function appendUserMsg(text) {
+  removeWelcome();
+  const wrap = document.createElement('div');
+  wrap.className = 'chat-msg user';
+  const av = document.createElement('div');
+  av.className = 'chat-avatar'; av.textContent = '👤';
+  const bub = document.createElement('div');
+  bub.className = 'chat-bubble'; bub.textContent = text;
+  wrap.appendChild(av); wrap.appendChild(bub);
+  chatMessages.appendChild(wrap);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function createAgentBubble() {
+  removeWelcome();
+  const wrap = document.createElement('div');
+  wrap.className = 'chat-msg agent';
+  const av = document.createElement('div');
+  av.className = 'chat-avatar'; av.textContent = '🤖';
+  const bub = document.createElement('div');
+  bub.className = 'chat-bubble';
+  wrap.appendChild(av); wrap.appendChild(bub);
+  chatMessages.appendChild(wrap);
+  chatMessages.scrollTop = chatMessages.scrollHeight;
+  return bub;
+}
+
+function createStepLine() {
+  const line = document.createElement('div');
+  line.style.cssText = 'font-size:11px;color:var(--text-muted);margin:2px 0 2px 40px;line-height:1.6';
+  chatMessages.appendChild(line);
+  return line;
+}
+
+function enableInput() {
+  if (chatSendBtn) chatSendBtn.disabled = false;
+  if (chatInput) { chatInput.disabled = false; chatInput.focus(); }
+}
+
+// ── SSE 流式接收 ──
+function subscribeStream(cmdId) {
+  if (currentEs) { currentEs.close(); currentEs = null; }
+
+  const agentBubble = createAgentBubble();
+  agentBubble.innerHTML = '<div class="thinking-dots"><span></span><span></span><span></span></div>';
+  let firstToken = true;
+  let stepLine = null;
+
+  const es = new EventSource(CHAT_SERVER + '/stream?id=' + cmdId);
+  currentEs = es;
+
+  es.onmessage = (e) => {
+    let event;
+    try { event = JSON.parse(e.data); } catch { return; }
+
+    if (event.type === 'step') {
+      // Show progress step below previous step (small muted text)
+      if (!stepLine || stepLine.textContent) stepLine = createStepLine();
+      stepLine.textContent = event.text;
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    } else if (event.type === 'token') {
+      if (firstToken) {
+        agentBubble.innerHTML = '';   // clear "..."
+        firstToken = false;
+      }
+      // Streaming: append text incrementally
+      agentBubble.textContent += event.text;
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    } else if (event.type === 'done') {
+      es.close(); currentEs = null;
+      if (firstToken) agentBubble.innerHTML = '✅ 处理完成';
+      if (event.action === 'html_updated' && chatRefreshHint) {
+        chatRefreshHint.style.display = 'block';
+      }
+      enableInput();
+    }
+  };
+
+  es.onerror = () => {
+    es.close(); currentEs = null;
+    if (firstToken) agentBubble.textContent = '❌ 连接断开，请检查 chat_server.py 是否运行中。';
+    enableInput();
+  };
+}
+
+// ── 发送消息 ──
+function sendChat() {
+  if (!chatInput) return;
+  const msg = chatInput.value.trim();
+  if (!msg) return;
+
+  if (!serverOnline) {
+    appendUserMsg(msg);
+    const bub = createAgentBubble();
+    bub.textContent = '⚠️ 助手未连接，请先运行：python3 chat_server.py --data <data.json>';
+    return;
+  }
+
+  appendUserMsg(msg);
+  chatInput.value = '';
+  chatInput.style.height = 'auto';
+  if (chatSendBtn) chatSendBtn.disabled = true;
+  if (chatInput) chatInput.disabled = true;
+
+  fetch(CHAT_SERVER + '/command', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: msg, topic: TOPIC_NAME }),
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.id) subscribeStream(data.id);
+      else throw new Error('no id');
+    })
+    .catch(() => {
+      const bub = createAgentBubble();
+      bub.textContent = '❌ 发送失败，请检查 chat_server.py 是否在运行。';
+      enableInput();
+    });
+}
+
+function fillInput(text) {
+  if (!chatInput) return;
+  chatInput.value = text;
+  chatInput.focus();
+  // auto-resize
+  chatInput.style.height = 'auto';
+  chatInput.style.height = chatInput.scrollHeight + 'px';
+}
+
+// Auto-resize textarea
+if (chatInput) {
+  chatInput.addEventListener('input', () => {
+    chatInput.style.height = 'auto';
+    chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+  });
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendChat();
+    }
+  });
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,446 @@
+{
+  "topic": "Diffusion Models",
+  "topic_zh": "扩散模型",
+  "generated_at": "2026-03-08 10:00",
+  "field_overview": "扩散模型的本质问题很简单：如何将一张纯噪声图像逐步「去噪」成一张有意义的图片？这个看似简单的问题，在 2020-2022 年间引发了生成式 AI 的最大一次范式转变。\n\n2024 年的主要共识是：扩散模型已经赢得了图像生成的主战场，但计算效率仍是核心痛点。Reviewer 在几乎所有顶会论文中都会追问「采样速度」——从 DDPM 的 1000 步采样到 DDIM 的 50 步、再到 Consistency Models 的单步生成，这条效率优化主线贯穿至今。\n\n当前最大的争议点有两个：第一，Flow Matching 和传统 score-based 方法谁更有前途？（多数 reviewer 认为 flow matching 的训练目标更简洁，但实验优势仍不够显著）第二，扩散模型在视频生成中的可扩展性如何？（Sora 的成功让所有人都在追赶，但对显存和训练时间的需求让学术界难以复现）\n\n新手建议：先读 DDPM（理解核心数学），再读 DDIM（理解加速），最后读 Latent Diffusion（理解为什么 Stable Diffusion 能在消费级 GPU 上跑）。这三篇按顺序读完后，你对整个领域的 80% 内容都会有基本判断力。",
+  "foundation": [
+    {
+      "year": 2015,
+      "title": "Deep Unsupervised Learning using Nonequilibrium Thermodynamics",
+      "authors": [
+        "Sohl-Dickstein et al."
+      ],
+      "description": "首次将热力学非平衡过程引入生成模型，提出扩散过程的理论基础",
+      "url": "https://arxiv.org/abs/1503.03585",
+      "problem_solved": "为扩散生成模型建立数学基础",
+      "problem_left": "图像质量远不如 GAN，纯理论验证",
+      "is_key": false,
+      "citation_count": 3200
+    },
+    {
+      "year": 2019,
+      "title": "Generative Modeling by Estimating Gradients of the Data Distribution (NCSN)",
+      "authors": [
+        "Song & Ermon"
+      ],
+      "description": "提出 score-based 生成范式，证明去噪分数匹配可以高质量采样",
+      "url": "https://arxiv.org/abs/1907.05600",
+      "problem_solved": "建立 score-based 生成模型方法论",
+      "problem_left": "与 DDPM 的连接尚未清晰",
+      "is_key": false,
+      "citation_count": 4100
+    },
+    {
+      "year": 2020,
+      "title": "Denoising Diffusion Probabilistic Models (DDPM)",
+      "authors": [
+        "Ho et al.",
+        "NeurIPS 2020"
+      ],
+      "description": "将扩散过程与 Markov chain 结合，确立现代扩散模型的核心范式",
+      "url": "https://arxiv.org/abs/2006.11239",
+      "problem_solved": "首次实现超越 GAN 的图像生成质量",
+      "problem_left": "采样极慢（需 1000 步），计算开销巨大",
+      "is_key": true,
+      "citation_count": 18000
+    },
+    {
+      "year": 2021,
+      "title": "Denoising Diffusion Implicit Models (DDIM)",
+      "authors": [
+        "Song et al.",
+        "ICLR 2021"
+      ],
+      "description": "将采样过程从随机 Markov 改为确定性过程，实现 20× 加速",
+      "url": "https://arxiv.org/abs/2010.02502",
+      "problem_solved": "将采样步数从 1000 降至 50，使实际应用成为可能",
+      "problem_left": "仍需多步采样，实时生成仍有差距",
+      "is_key": true,
+      "citation_count": 5800
+    },
+    {
+      "year": 2022,
+      "title": "High-Resolution Image Synthesis with Latent Diffusion Models (LDM)",
+      "authors": [
+        "Rombach et al.",
+        "CVPR 2022"
+      ],
+      "description": "将扩散过程压缩到低维 latent space，大幅降低计算成本，催生 Stable Diffusion",
+      "url": "https://arxiv.org/abs/2112.10752",
+      "problem_solved": "使高分辨率生成在消费级 GPU 上可行",
+      "problem_left": "latent 空间的表达能力有上限",
+      "is_key": true,
+      "citation_count": 12000
+    },
+    {
+      "year": 2023,
+      "title": "Consistency Models",
+      "authors": [
+        "Song et al.",
+        "ICML 2023"
+      ],
+      "description": "训练模型直接从任意噪声级别映射到干净图像，实现单步生成",
+      "url": "https://arxiv.org/abs/2303.01469",
+      "problem_solved": "单步生成，速度提升数十倍",
+      "problem_left": "训练不稳定，质量略低于多步方法",
+      "is_key": false,
+      "citation_count": 2100
+    }
+  ],
+  "frontier": [
+    {
+      "title": "Flow Matching for Generative Modeling",
+      "forum_id": "PqvMRDCJT9t",
+      "venue": "ICLR",
+      "year": 2023,
+      "url": "https://openreview.net/forum?id=PqvMRDCJT9t",
+      "avg_rating": 7.3,
+      "reviews": [
+        {
+          "rating": "8",
+          "strengths": "Training objective 比 DDPM 更简单优雅，理论推导清晰。在 ImageNet 256×256 达到 SOTA FID。",
+          "weaknesses": "缺少与 Consistency Models 的系统比较。Classifier-free guidance 的兼容性未讨论。",
+          "related_work": [
+            "Consistency Models",
+            "Rectified Flow",
+            "EDM (Karras et al.)"
+          ]
+        },
+        {
+          "rating": "6",
+          "strengths": "方法简洁，实现容易，有实用价值。",
+          "weaknesses": "与 score-based SDE 的关系论述不够清晰，创新性存疑。",
+          "related_work": [
+            "Score SDE (Song et al. 2021)",
+            "DDPM"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Scalable Diffusion Models with Transformers (DiT)",
+      "forum_id": "DiT2024",
+      "venue": "ICCV",
+      "year": 2023,
+      "url": "https://arxiv.org/abs/2212.09748",
+      "avg_rating": 8.1,
+      "reviews": [
+        {
+          "rating": "8",
+          "strengths": "用 Transformer 替换 U-Net 作为主干，实验证明 scaling law 在扩散模型中有效。结果非常令人信服。",
+          "weaknesses": "计算成本高昂，学术界难以复现 large scale 实验。",
+          "related_work": [
+            "U-Net (Ronneberger et al.)",
+            "ViT (Dosovitskiy et al.)",
+            "Latent Diffusion"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Consistency Models",
+      "forum_id": "CM_ICML2023",
+      "venue": "ICML",
+      "year": 2023,
+      "url": "https://arxiv.org/abs/2303.01469",
+      "avg_rating": 8.5,
+      "reviews": [
+        {
+          "rating": "9",
+          "strengths": "将扩散过程的多步采样压缩为单步，理论创新突出。FID 和速度均优于 DDIM 50-step。",
+          "weaknesses": "训练稳定性问题未充分讨论。与 score distillation 的联系尚待厘清。",
+          "related_work": [
+            "EDM (Karras et al. 2022)",
+            "Score Distillation Sampling",
+            "DDIM"
+          ]
+        },
+        {
+          "rating": "8",
+          "strengths": "单步生成在实时应用场景极具价值，训练目标简洁。",
+          "weaknesses": "在高分辨率（ImageNet 512×512）的质量与 DDPM 差距仍明显。",
+          "related_work": [
+            "Progressive Distillation",
+            "Denoising Diffusion Samplers"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Elucidating the Design Space of Diffusion-Based Generative Models (EDM)",
+      "forum_id": "EDM_NeurIPS2022",
+      "venue": "NeurIPS",
+      "year": 2022,
+      "url": "https://arxiv.org/abs/2206.00364",
+      "avg_rating": 9.0,
+      "reviews": [
+        {
+          "rating": "9",
+          "strengths": "系统性分析扩散模型中预条件、采样方法、噪声调度等设计选项，极具参考价值。将多个已有方法统一到同一框架下比较，贡献扎实。",
+          "weaknesses": "工程贡献比理论贡献大，部分实验细节过于繁琐。",
+          "related_work": [
+            "DDPM",
+            "NCSN++",
+            "Score SDE"
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Denoising Diffusion Implicit Models (DDIM)",
+      "forum_id": "DDIM_ICLR2021",
+      "venue": "ICLR",
+      "year": 2021,
+      "url": "https://openreview.net/forum?id=St1giarCHLP",
+      "avg_rating": 8.0,
+      "reviews": [
+        {
+          "rating": "8",
+          "strengths": "将随机采样转化为确定性过程，20× 加速且支持语义插值，工程影响极大。",
+          "weaknesses": "理论分析较浅，主要是 DDPM 的工程改进。与 ODE solver 视角的联系未充分挖掘。",
+          "related_work": [
+            "Neural ODE",
+            "DDPM",
+            "Score SDE (concurrent work)"
+          ]
+        }
+      ]
+    }
+  ],
+  "reading_list": [
+    {
+      "title": "Denoising Diffusion Probabilistic Models (DDPM)",
+      "type": "foundation",
+      "reason": "必读入门论文，理解扩散模型的核心数学框架",
+      "url": "https://arxiv.org/abs/2006.11239"
+    },
+    {
+      "title": "Denoising Diffusion Implicit Models (DDIM)",
+      "type": "foundation",
+      "reason": "理解如何将采样从 1000 步加速到 50 步",
+      "url": "https://arxiv.org/abs/2010.02502"
+    },
+    {
+      "title": "Latent Diffusion Models (Stable Diffusion)",
+      "type": "foundation",
+      "reason": "理解为什么高分辨率生成可以在普通 GPU 上运行",
+      "url": "https://arxiv.org/abs/2112.10752"
+    },
+    {
+      "title": "Flow Matching for Generative Modeling",
+      "type": "frontier",
+      "reason": "ICLR 2023 方向热点，比 DDPM 训练目标更简洁",
+      "url": "https://openreview.net/forum?id=PqvMRDCJT9t"
+    },
+    {
+      "title": "Scalable Diffusion Models with Transformers (DiT)",
+      "type": "frontier",
+      "reason": "验证 Transformer 在扩散模型中的 scaling law，Sora 的前驱工作",
+      "url": "https://arxiv.org/abs/2212.09748"
+    },
+    {
+      "title": "Consistency Models",
+      "type": "frontier",
+      "reason": "ICML 2023 最佳论文候选；单步生成突破，速度与质量平衡的里程碑",
+      "url": "https://arxiv.org/abs/2303.01469"
+    },
+    {
+      "title": "EDM: Elucidating the Design Space of Diffusion-Based Generative Models",
+      "type": "frontier",
+      "reason": "NeurIPS 2022 Outstanding Paper；系统性分析扩散模型所有设计选项，工程必读",
+      "url": "https://arxiv.org/abs/2206.00364"
+    },
+    {
+      "title": "Rectified Flow",
+      "type": "recommended",
+      "reason": "来源：Reviewer 要求与之比较；Flow Matching 的直接相关工作，SD3 技术底座",
+      "url": "https://arxiv.org/abs/2209.03003"
+    },
+    {
+      "title": "Score SDE: Score-Based Generative Modeling through Stochastic Differential Equations",
+      "type": "recommended",
+      "reason": "来源：Reviewer 推荐；将 NCSN 和 DDPM 统一在 SDE 框架下，理论深度最强",
+      "url": "https://arxiv.org/abs/2011.13456"
+    }
+  ],
+  "top_authors": [
+    {
+      "name": "Yang Song",
+      "institution": "OpenAI / Stanford University",
+      "papers_count": 52,
+      "recent_work": "Score-based models, DDIM, Consistency Models, Flow Matching",
+      "url": "https://yang-song.net"
+    },
+    {
+      "name": "Jonathan Ho",
+      "institution": "Google DeepMind",
+      "papers_count": 38,
+      "recent_work": "DDPM, Classifier-free guidance, Video Diffusion Models",
+      "url": "https://scholar.google.com/citations?user=14gRbVgAAAAJ"
+    },
+    {
+      "name": "Robin Rombach",
+      "institution": "Stability AI / LMU Munich",
+      "papers_count": 31,
+      "recent_work": "Latent Diffusion Models, Stable Diffusion, ControlNet",
+      "url": "https://scholar.google.com/citations?user=ygdQhrIAAAAJ"
+    },
+    {
+      "name": "Tero Karras",
+      "institution": "NVIDIA Research",
+      "papers_count": 44,
+      "recent_work": "EDM, StyleGAN→Diffusion, Progressive training strategies",
+      "url": "https://scholar.google.com/citations?user=3VrWgWkAAAAJ"
+    },
+    {
+      "name": "William Peebles",
+      "institution": "OpenAI / UC Berkeley",
+      "papers_count": 18,
+      "recent_work": "DiT (Diffusion Transformers), Sora architecture",
+      "url": "https://www.wpeebles.com"
+    }
+  ],
+  "resources": {
+    "github": [
+      {
+        "name": "CompVis/stable-diffusion",
+        "stars": "52k",
+        "description": "Latent Diffusion Models 官方实现，Stable Diffusion 原始代码",
+        "url": "https://github.com/CompVis/stable-diffusion"
+      },
+      {
+        "name": "AUTOMATIC1111/stable-diffusion-webui",
+        "stars": "134k",
+        "description": "最流行的 Stable Diffusion Web UI，功能最全面",
+        "url": "https://github.com/AUTOMATIC1111/stable-diffusion-webui"
+      },
+      {
+        "name": "lucidrains/denoising-diffusion-pytorch",
+        "stars": "8k",
+        "description": "教学向 PyTorch 实现，代码简洁，适合新手学习原理",
+        "url": "https://github.com/lucidrains/denoising-diffusion-pytorch"
+      },
+      {
+        "name": "huggingface/diffusers",
+        "stars": "24k",
+        "description": "HuggingFace 官方扩散模型库，集成最新模型，工业级可用",
+        "url": "https://github.com/huggingface/diffusers"
+      }
+    ],
+    "bilibili": [
+      {
+        "title": "李沐·DDPM 论文精读【论文精读】",
+        "url": "https://www.bilibili.com/video/BV1b541197HX",
+        "view_count": 1800000
+      },
+      {
+        "title": "扩散模型从入门到精通（10集）",
+        "url": "https://www.bilibili.com/video/BV1RG4y197h5",
+        "view_count": 450000
+      },
+      {
+        "title": "【熟肉】Understanding Diffusion Models: 官方讲解中字",
+        "url": "https://www.bilibili.com/video/BV1gA411D7E3",
+        "view_count": 280000
+      }
+    ],
+    "wechat": [
+      {
+        "title": "量子位·Stable Diffusion 完整技术解析：从原理到实践",
+        "url": "https://mp.weixin.qq.com/s/stable-diffusion-technical-deep-dive"
+      },
+      {
+        "title": "机器之心·2024 生成模型综述：扩散模型的新进展",
+        "url": "https://mp.weixin.qq.com/s/diffusion-models-2024-survey"
+      },
+      {
+        "title": "PaperWeekly·Flow Matching 详解：比 DDPM 更优雅的训练目标",
+        "url": "https://mp.weixin.qq.com/s/flow-matching-explained"
+      }
+    ]
+  },
+  "paper_clusters": [
+    {
+      "id": "cluster_sde",
+      "name": "Score-based / SDE Methods",
+      "subgraph_style": "fill:#eff6ff,stroke:#2563eb",
+      "paper_node_ids": [
+        "N2019_NCSN",
+        "N2020_DDPM",
+        "N2021_DDIM"
+      ]
+    },
+    {
+      "id": "cluster_flow",
+      "name": "Flow-based Samplers",
+      "subgraph_style": "fill:#faf5ff,stroke:#7c3aed",
+      "paper_node_ids": [
+        "N2021_SDE",
+        "N2022_EDM",
+        "N2023_FM",
+        "N2023_CM"
+      ]
+    },
+    {
+      "id": "cluster_latent",
+      "name": "Latent / Efficient Methods",
+      "subgraph_style": "fill:#f0fdf4,stroke:#059669",
+      "paper_node_ids": [
+        "N2022_LDM",
+        "N2023_DiT"
+      ]
+    }
+  ],
+  "graph_mermaid": "flowchart LR\n  classDef foundation fill:#dbeafe,stroke:#2563eb,color:#1e40af\n  classDef key fill:#2563eb,stroke:#1e40af,color:white\n  classDef frontier fill:#f5f3ff,stroke:#7c3aed,color:#4c1d95\n\n  subgraph cluster_sde[\"🔵 Score-based / SDE Methods\"]\n    style cluster_sde fill:#eff6ff,stroke:#2563eb\n    N2019_NCSN[\"2019 NCSN\\n⭐ 4k\"]:::foundation\n    N2020_DDPM[\"2020 DDPM\\n⭐ 18k\"]:::key\n    N2021_DDIM[\"2021 DDIM\\n⭐ 6k\"]:::key\n  end\n\n  subgraph cluster_flow[\"🟣 Flow-based Samplers\"]\n    style cluster_flow fill:#faf5ff,stroke:#7c3aed\n    N2022_EDM[\"2022 EDM\\n⭐ 3k\"]:::foundation\n    N2023_FM[\"2023 Flow Matching\"]:::frontier\n    N2023_CM[\"2023 Consistency\\nModels\\n⭐ 2k\"]:::frontier\n  end\n\n  subgraph cluster_latent[\"🟢 Latent / Efficient Methods\"]\n    style cluster_latent fill:#f0fdf4,stroke:#059669\n    N2022_LDM[\"2022 LDM / SD\\n⭐ 12k\"]:::key\n    N2023_DiT[\"2023 DiT\\n(Peebles et al.)\"]:::frontier\n  end\n\n  N2019_NCSN --> N2020_DDPM\n  N2020_DDPM --> N2021_DDIM\n  N2020_DDPM --> N2022_LDM\n  N2020_DDPM --> N2023_FM\n  N2021_DDIM --> N2022_EDM\n  N2021_DDIM --> N2023_CM\n  N2022_LDM --> N2023_DiT",
+  "latest_updates": [],
+  "social_actions": [
+    {
+      "platform": "xiaohongshu",
+      "action": "search",
+      "query": "扩散模型 学习",
+      "result_count": 23,
+      "timestamp": "2026-03-08 10:15",
+      "status": "done"
+    },
+    {
+      "platform": "xiaohongshu",
+      "action": "follow",
+      "target_name": "李沐_学习圈",
+      "target_id": "u123456",
+      "target_url": "https://www.xiaohongshu.com/user/profile/u123456",
+      "reason": "发布了 12 篇扩散模型学习笔记，互动活跃",
+      "timestamp": "2026-03-08 10:17",
+      "status": "followed"
+    },
+    {
+      "platform": "xiaohongshu",
+      "action": "follow",
+      "target_name": "AIGC研究生日常",
+      "target_id": "u789012",
+      "target_url": "https://www.xiaohongshu.com/user/profile/u789012",
+      "reason": "专注扩散模型应用，粉丝 8k",
+      "timestamp": "2026-03-08 10:17",
+      "status": "followed"
+    },
+    {
+      "platform": "xiaohongshu",
+      "action": "follow",
+      "target_name": "CV_Paper_Daily",
+      "target_id": "u345678",
+      "target_url": "https://www.xiaohongshu.com/user/profile/u345678",
+      "reason": "每日更新 AIGC 论文速递，已关注",
+      "timestamp": "2026-03-08 10:17",
+      "status": "skipped"
+    },
+    {
+      "platform": "wechat_group",
+      "action": "qr_found",
+      "group_name": "AIGC 扩散模型交流群",
+      "source_url": "https://www.xiaohongshu.com/explore/demo_post",
+      "weixin_link": "weixin://groupjoin/DEMO_LINK",
+      "draft_message": "您好！我是北大的研究生，正在研究扩散模型视频生成方向。看到这个群非常对口，希望能加入和大家交流学习，也可以分享我们组的最新进展。感谢！",
+      "timestamp": "2026-03-08 10:20",
+      "status": "ready"
+    }
+  ]
+}
