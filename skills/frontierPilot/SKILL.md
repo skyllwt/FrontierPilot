@@ -1,6 +1,6 @@
 ---
 name: frontierPilot
-description: FrontierPilot 学术探索主编排。当用户想探索一个研究方向、入场一个新领域、了解某个 AI/CS 方向时使用；也处理"更新 [topic] 的最新动态"请求（只执行更新分支）。执行三轨工作流：基础知识Roadmap + 前沿peer review分析 + 社交资源聚合，最终生成成长型知识库 HTML。
+description: FrontierPilot 学术探索主编排。当用户想探索一个研究方向、入场一个新领域、了解某个 AI/CS 方向时使用；也处理"更新 [topic] 的最新动态"请求（只执行更新分支）。执行三轨工作流：基础知识Roadmap + 前沿peer review分析 + 社交资源聚合，最终生成成长型知识库 HTML；知识库内置智能助手，支持在页面内社交主动探索（小红书专家发现 / 微信群入群）。
 ---
 
 # FrontierPilot — 学术领域成长型知识库主编排
@@ -45,7 +45,6 @@ Cookie 有效期约 1-3 个月。过期后运行 `python3 scripts/xhs_login.py` 
     │       1A: SS search --sort-by citations → 高引用奠基论文（精准，无需 LLM 猜）
     │       1B: SS paper --include-references × 前6篇 → 真实引用边（构建图谱用）
     │       1C: arXiv 最近90天 → 补充预印本（可选，通常0-2篇）
-    │       Step 3C（并行）：提取高频作者 → Semantic Scholar 补充机构信息
     │
     ├── 轨道二：Frontier Track（前沿 peer review 分析）
     │       2A: SS search --sort-by year --year-after 2022 → 近年前沿候选
@@ -56,12 +55,16 @@ Cookie 有效期约 1-3 个月。过期后运行 `python3 scripts/xhs_login.py` 
     │
     ├── 轨道三：Social Track（资源地图）
     │       GitHub 开源实现 + Bilibili 中文教程 + 微信公众号文章
+    │       ※ 社交主动探索（小红书专家 / 微信群发现）由知识库内智能助手触发，
+    │         非主流程步骤；chat_server.py 启动后自动支持，无需 agent 编排
     │
     ├── Step 2.5：LLM 识别流派 → paper_clusters（2-4个方法族）
     │
     ├── Step 4.5：合成 Field Overview（专家视角综述，300-400字）
     │       输入：foundation摘要 + reviewer strengths/weaknesses
     │       输出：field_overview 字符串
+    │
+    ├── Step 3C：作者提取（可与轨道三并行，依赖轨道一+二数据）
     │
     └── Step 5：生成成长型知识库 HTML（generate_report.py）
             包含：领域概况 + 知识图谱（subgraph流派区块） + 基础Roadmap + 前沿快照
@@ -145,19 +148,7 @@ bash /home/node/.openclaw/workspace/skills/arxiv-watcher/scripts/search_arxiv.sh
 
 从返回结果中**只取 `<published>` 在最近 90 天内的论文**（其余全部丢弃）。通常补充 0-2 篇 Semantic Scholar 尚未收录的最新预印本。若 Step 1A 已覆盖最新工作，此步骤可跳过。
 
-**轨道一最终输出**：
-
-```
-📚 基础 Roadmap · [TOPIC] 领域演进
-
-[2018] 论文A — 奠定了 X 基础...（⭐ 8k citations）
-[2020] 论文B — 引入了 Y 机制，解决了...（⭐ 18k citations）
-[2022] 论文C — 提出 Z 方法，首次实现...（⭐ 12k citations）
-[2024] 论文D — 当前 SOTA，方向是...（⭐ 2k citations）
-
-演进逻辑：[2-3句话总结该领域如何从初始问题演进到当前前沿]
-真实引用边：[从 SS references 数据得出的 A→B 关系]
-```
+**轨道一输出**：写入 JSON 的 `foundation` 数组（每项含 year/title/authors/description/problem_solved/problem_left/url/is_key/citation_count），并在 chat 中简要汇报演进逻辑和真实引用边（来自 Step 1B）。
 
 ---
 
@@ -315,37 +306,7 @@ python3 /home/node/.openclaw/workspace/skills/openreview-explorer/scripts/get_re
 
 ---
 
-#### Step 3C：作者提取（与轨道三并行执行）
-
-从轨道一和轨道二收集到的论文中，提取高频作者：
-
-1. 汇总 `foundation` 论文的 `authors` 字段 + `frontier` 论文的 authors 字段
-2. 统计高频作者（出现 ≥ 2 次，或为明确的一作/通讯）
-3. 对 Top 5-6 位作者，用 Semantic Scholar 查询补充机构和论文数（可选）：
-
-```bash
-python3 /home/node/.openclaw/workspace/skills/semantic-scholar/scripts/semantic_scholar.py \
-  author --name "<AUTHOR_NAME>"
-```
-
-若 Semantic Scholar 无法查询，直接从论文元数据提取可用信息（机构通常在 arXiv 摘要末尾或 OpenReview profile 中）。
-
-**输出格式**（写入 JSON 的 `top_authors` 字段）：
-```json
-[
-  {
-    "name": "Yang Song",
-    "institution": "OpenAI / Stanford University",
-    "papers_count": 45,
-    "recent_work": "Score-based generative modeling, Consistency Models, Flow Matching",
-    "url": "https://scholar.google.com/citations?user=..."
-  }
-]
-```
-
-⚠️ 若无法获取完整机构信息，只填 name + recent_work 也可，不要阻塞流程。
-
-#### Step 2E：提取 Related Work（关键亮点功能）
+#### Step 2F：提取 Related Work（关键亮点功能）
 
 对每篇论文的所有 reviews，用 LLM 解析 `weaknesses` 和 `questions` 字段，提取 reviewer **明确要求作者比较或解释的 related work**。
 
@@ -354,22 +315,7 @@ python3 /home/node/.openclaw/workspace/skills/semantic-scholar/scripts/semantic_
 - 提取被提及的论文名称或方法名称
 - 将这些自动加入阅读清单（标注来源：reviewer 推荐）
 
-**轨道二最终输出**：
-
-```
-🔬 前沿进展 · 多 venue 同行评审视角（5-8篇）
-
-**论文 1**：[标题]（venue year）
-  作者：...  |  链接：...
-  摘要：[1句话]
-  📊 Reviewer 评分：[平均分] / 10
-  ✅ 优点：[综合 strengths]
-  ⚠️  弱点：[综合 weaknesses]
-  💬 作者回应：[rebuttal 核心观点]
-  🔗 Reviewer 推荐比较的工作：[论文A]、[论文B]（已加入阅读清单）
-
-**论文 2**：...
-```
+**轨道二输出**：写入 JSON 的 `frontier` 数组（每项含 title/forum_id/venue/year/url/avg_rating/reviews），`reviews` 每项含 rating/strengths/weaknesses/related_work。在 chat 中简要汇报每篇论文的评分和 reviewer 核心观点。
 
 ---
 
@@ -450,25 +396,26 @@ python3 /home/node/.openclaw/workspace/skills/frontierPilot/scripts/search_socia
 
 ⚠️ **必须将 bilibili 和 wechat 两个 section 的内容都包含在最终输出中。** 即使某平台只有搜索页链接也要列出，不可丢弃。
 
-**轨道三最终输出**（三个 section 必须全部出现）：
+**轨道三输出**：写入 JSON 的 `resources` 对象（含 github/bilibili/wechat 三个列表）。⚠️ 三个列表必须全部存在；如果某平台结果为空，写入空数组但在 chat 中注明"搜索无结果，建议手动搜索：[关键词]"。
 
+---
+
+### Step 3C：作者提取（可与轨道三并行执行）
+
+从轨道一和轨道二收集到的论文中，提取高频作者：
+
+1. 汇总 `foundation` 论文的 `authors` 字段 + `frontier` 论文的 authors 字段
+2. 统计高频作者（出现 ≥ 2 次，或为明确的一作/通讯）
+3. 对 Top 5-6 位作者，用 Semantic Scholar 查询补充机构和论文数（可选）：
+
+```bash
+python3 /home/node/.openclaw/workspace/skills/semantic-scholar/scripts/semantic_scholar.py \
+  author --name "<AUTHOR_NAME>"
 ```
-🌐 资源地图 · [TOPIC]
 
-💻 GitHub 开源实现
-  1. [repo名] ⭐[stars] — [链接]
-  2. ...（至少3个）
+若 Semantic Scholar 无法查询，直接从论文元数据提取可用信息。
 
-📺 Bilibili 中文教程（⚠️ 必须列出，来自 search_social.py 的 bilibili 字段）
-  1. [标题] — [链接]
-  2. ...
-
-📰 微信公众号文章（⚠️ 必须列出，来自 search_social.py 的 wechat 字段）
-  1. [标题] — [链接]
-  2. ...
-```
-
-⚠️ **如果 Bilibili 或微信结果为空，必须写"搜索无结果，建议手动搜索：[关键词]"，不可整个 section 消失。**
+**输出**（写入 JSON 的 `top_authors` 字段）：每项含 name/institution/papers_count/recent_work/url。若无法获取完整机构信息，只填 name + recent_work 也可，不要阻塞流程。
 
 ---
 
@@ -503,139 +450,27 @@ Reviewer 评价汇总：[REVIEWER_INSIGHTS]
 
 ---
 
-### 最终整合输出
+### Step 4.8：向用户汇报数据收集结果（生成 HTML 前）
 
-三轨完成后，整合为完整的领域入场包：
+三轨数据 + Step 4.5 完成后，在 chat 中简要汇报，内容必须包含：
+1. 基础 Roadmap：N 篇奠基论文 + 一句话演进逻辑
+2. 前沿快照：N 篇论文 + 顶会来源 + reviewer 核心观点（每篇一句）
+3. 阅读清单：按奠基 → 前沿 → Reviewer 推荐 顺序列出
+4. 资源地图：GitHub（N 个）+ Bilibili（N 个）+ 微信（N 个）—— 三个来源必须全部出现
+5. 领域强组：N 位活跃研究者 + 机构
 
-```
-✅ [TOPIC] 领域入场包
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📚 基础 Roadmap：[N] 个关键节点 + 演进逻辑
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[轨道一输出]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔬 前沿快照：[VENUE] [YEAR] 顶会 + Peer Review 视角
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[轨道二输出]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 综合阅读清单（按依赖顺序）
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-优先阅读（奠基）：
-  1. [论文] — [一句话说明为何先读]
-  2. ...
-
-进阶阅读（前沿）：
-  3. [论文] — [来源：ICLR 2024 top paper]
-  4. ...
-
-扩展阅读（Reviewer 推荐）：
-  5. [论文] — [来源：reviewer 要求与之比较]
-  6. ...
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🌐 资源地图（必须包含 GitHub + Bilibili + 微信三个子节）
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-💻 GitHub 开源实现
-[来自 github-search 的结果]
-
-📺 Bilibili 中文教程
-[来自 search_social.py 的 bilibili 字段，必须输出]
-
-📰 微信公众号
-[来自 search_social.py 的 wechat 字段，必须输出]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⏱️  总用时：< 10 分钟  |  数据来源：arXiv + OpenReview + GitHub + Bilibili + 微信
-```
+然后继续执行 Step 5。
 
 ---
 
-## Demo 示例：输入 "帮我探索 AutoML 方向"
-
-当用户输入 "帮我探索 AutoML 方向" 时，Agent 应按以下顺序执行：
-
-**1. 解析参数**
-- TOPIC = "AutoML"
-- TOPIC_ENGLISH = "AutoML neural architecture search"
-- TOPIC_CHINESE = "AutoML 自动机器学习"
-- VENUE = ICLR，YEAR = 2024（默认）
-
-**2. 执行轨道一**
-
-```bash
-bash /home/node/.openclaw/workspace/skills/arxiv-watcher/scripts/search_arxiv.sh "AutoML neural architecture search" 30
-```
-
-解析 XML，LLM 从中识别出：
-- [2019] NAS with RL (Zoph & Le) — 开创神经架构搜索
-- [2019] DARTS — 可微分架构搜索，大幅降低搜索成本
-- [2021] EfficientNet — 自动化网络缩放
-- [2023] LLM4NAS — 用 LLM 指导架构搜索
-
-**3. 执行轨道二**
-
-```bash
-# 先尝试带 query
-python3 /home/node/.openclaw/workspace/skills/openreview-explorer/scripts/search_papers.py \
-  --query "automl" \
-  --venue "ICLR" \
-  --year 2024 \
-  --limit 20
-```
-
-若有结果，LLM 筛选出最相关的 3 篇。若返回 total=0，改为：
-
-```bash
-python3 /home/node/.openclaw/workspace/skills/openreview-explorer/scripts/search_papers.py \
-  --venue "ICLR" \
-  --year 2024 \
-  --limit 50
-```
-
-对每篇相关论文获取 reviews：
-
-```bash
-python3 /home/node/.openclaw/workspace/skills/openreview-explorer/scripts/get_reviews.py \
-  --forum-id <forum_id_1> \
-  --venue "ICLR" \
-  --year 2024
-
-python3 /home/node/.openclaw/workspace/skills/openreview-explorer/scripts/get_reviews.py \
-  --forum-id <forum_id_2> \
-  --venue "ICLR" \
-  --year 2024
-```
-
-LLM 解析 weaknesses 字段，发现 reviewer 提到 "与 SMAC3 比较" 和 "为何不与 BOHB 对比"，自动将 SMAC3 和 BOHB 加入阅读清单（标注来源）。
-
-**4. 执行轨道三**
-
-```bash
-# GitHub
-node /home/node/.openclaw/workspace/skills/github-search/scripts/github-search.mjs \
-  "AutoML" --min-stars 200 --limit 6
-
-# Bilibili + 微信（⚠️ 必须执行）
-python3 /home/node/.openclaw/workspace/skills/frontierPilot/scripts/search_social.py \
-  --topic "AutoML" \
-  --topic-zh "AutoML 自动机器学习" \
-  2>/dev/null
-```
-
-**5. 生成成长型知识库 HTML（必须执行）**
+### Step 5：生成成长型知识库 HTML + 启动智能助手
 
 三轨数据 + Field Overview + Top Authors 收集完成后，将所有结果整理为 JSON，调用 generate_report.py 生成成长型知识库 HTML：
 
-```python
-# 输出路径使用 workspace 挂载目录，主机可直接访问
-# 容器内路径：/home/node/.openclaw/workspace/output/
-# 主机路径：  /home/corin/projects/FrontierPilot-workspace/output/（自动同步）
-import os
-os.makedirs("/home/node/.openclaw/workspace/output", exist_ok=True)
-
+```bash
+# 输出路径容器内：/home/node/.openclaw/workspace/output/
+# 主机路径：      /home/corin/projects/FrontierPilot-workspace/output/（自动同步）
+mkdir -p /home/node/.openclaw/workspace/output
 python3 /home/node/.openclaw/workspace/skills/frontierPilot/scripts/generate_report.py \
   --data /home/node/.openclaw/workspace/output/fp_data_{TOPIC}.json \
   --output /home/node/.openclaw/workspace/output/FrontierPilot_{TOPIC}.html
@@ -650,13 +485,15 @@ sleep 1
 
 # 后台启动聊天桥接服务器（监听 localhost:7779）
 # --html 参数让 GET http://localhost:7779/ 直接 serve 知识库页面
-OPENCLAW_GATEWAY_TOKEN=OPENCLAW_GATEWAY_TOKEN_REDACTED \
-OPENCLAW_GATEWAY_PORT=18789 \
+OPENCLAW_GATEWAY_TOKEN="$OPENCLAW_GATEWAY_TOKEN" \
+OPENCLAW_GATEWAY_PORT="${OPENCLAW_GATEWAY_PORT:-18789}" \
 nohup python3 /home/node/.openclaw/workspace/skills/frontierPilot/scripts/chat_server.py \
   --data /home/node/.openclaw/workspace/output/fp_data_{TOPIC}.json \
   --html /home/node/.openclaw/workspace/output/FrontierPilot_{TOPIC}.html \
   --port 7779 > /tmp/fp_chat.log 2>&1 &
 ```
+
+> **注意**：`chat_server.py` 启动后完全自主运行（SSE 流式通信 + OpenClaw Gateway function calling），用户在 HTML 页面的所有操作（添加论文、更新动态、分析论文、问答、社交探索）均由服务器自行处理，agent 无需再与其交互。
 
 ```
 ✅ {TOPIC} 成长型知识库已生成！
@@ -678,6 +515,8 @@ nohup python3 /home/node/.openclaw/workspace/skills/frontierPilot/scripts/chat_s
   · 把 [论文名] 添加到知识图谱
   · 更新最新动态
   · 分析 arXiv 论文：[URL]
+  · 帮我在小红书找这个方向的博主和微信群
+  · 帮我给 [作者名] 写一封学术交流邮件
 ```
 
 **JSON 数据格式说明**（写入 `/home/node/.openclaw/workspace/output/fp_data_{TOPIC}.json`）：
@@ -695,126 +534,9 @@ nohup python3 /home/node/.openclaw/workspace/skills/frontierPilot/scripts/chat_s
   - `name`：流派名称（如 `"Score-based / SDE Methods"`）
   - `subgraph_style`：subgraph 背景色（如 `"fill:#eff6ff,stroke:#2563eb"`）
   - `paper_node_ids`：该流派的 Mermaid 节点 ID 列表（必须与 graph_mermaid 中 ID 一致）
-- `graph_mermaid`：Mermaid flowchart 代码（**subgraph 格式**，引用边来自 SS 真实数据）。格式：
-  ```
-  flowchart LR
-    classDef foundation fill:#dbeafe,stroke:#2563eb,color:#1e40af
-    classDef key fill:#2563eb,stroke:#1e40af,color:white
-    classDef frontier fill:#f5f3ff,stroke:#7c3aed,color:#4c1d95
-
-    subgraph sg1["🔵 Score-based / SDE"]
-      style sg1 fill:#eff6ff,stroke:#2563eb
-      N2019_NCSN["2019 NCSN\n⭐4k"]:::foundation
-      N2020_DDPM["2020 DDPM\n⭐18k"]:::key
-    end
-
-    subgraph sg2["🟣 Flow-based Samplers"]
-      style sg2 fill:#faf5ff,stroke:#7c3aed
-      N2021_DDIM["2021 DDIM\n⭐6k"]:::foundation
-      N2023_FM["2023 Flow Matching"]:::frontier
-    end
-
-    N2019_NCSN --> N2020_DDPM
-    N2020_DDPM --> N2021_DDIM
-    N2021_DDIM --> N2023_FM
-  ```
-  ⚠️ 引用边（`A --> B`）必须来自 Step 1B 的 SS references 真实数据，不可 LLM 编造。跨 subgraph 的边保留。
+- `graph_mermaid`：Mermaid `flowchart LR` 代码，使用 `subgraph` 按 `paper_clusters` 分组，引用边来自 Step 1B 的 SS references 真实数据（不可 LLM 编造）。节点 ID 须与 `paper_clusters.paper_node_ids` 一致。
 - `latest_updates`：最新动态列表（首次生成时为空列表 `[]`），更新时追加项目
   - 每项含 date/title/url/summary/source（如 "arXiv"）
-
----
-
-## 智能助手（聊天桥接）协议
-
-HTML 知识库包含"🤖 智能助手"面板，通过本地 HTTP 服务器（`chat_server.py`，端口 7779）与 OpenClaw agent 通信。
-
-### 启动聊天桥接（生成 HTML 后执行）
-
-生成知识库 HTML 后，在后台启动聊天服务器：
-
-```bash
-python3 /home/node/.openclaw/workspace/skills/frontierPilot/scripts/chat_server.py &
-```
-
-然后使用 `CronCreate` 工具设置定时检查（每分钟），让 OpenClaw 自动处理用户发来的聊天请求：
-
-```
-CronCreate: cron="* * * * *", prompt="检查 FrontierPilot 聊天队列：GET http://localhost:7779/queue，如有 pending 命令则处理并 POST /respond 回复"
-```
-
-### 处理聊天命令（自动触发）
-
-当 Cron 或用户手动触发时，执行：
-
-#### C1：读取待处理命令
-
-```bash
-# 读取队列端点
-curl -s http://localhost:7779/queue
-# 返回 {"commands": [...], "total_pending": N}
-```
-
-若 `total_pending == 0`，什么都不做。
-
-#### C2：判断命令类型并处理
-
-根据 `message` 字段内容判断意图：
-
-**类型 A：添加论文到知识图谱**（"添加论文"、"加入图谱"、"add paper"）
-```
-- 提取论文标题 / arXiv URL
-- semantic_scholar.py search --query "<title>" --limit 5
-- 找到 paperId，获取 citation_count / abstract / year / authors
-- 将新论文追加到 data JSON 的 foundation 或 frontier 列表（由 LLM 判断归属）
-- 重新运行 Step 2.5 更新 paper_clusters（如需要）
-- 重新生成 HTML
-- response: "✅ 已将《[title]》添加到知识图谱，请刷新页面查看"
-- action: "html_updated"
-```
-
-**类型 B：更新最新动态**（"更新动态"、"最新进展"、"update"）
-```
-- 执行更新分支（见"更新分支"章节）
-- response: "✅ 已发现 N 篇新论文并更新知识库，请刷新页面"
-- action: "html_updated"
-```
-
-**类型 C：分析 arXiv 论文**（"分析"、"解读"、"arxiv.org/abs/"）
-```
-- 提取 arXiv ID 或搜索关键词
-- 获取论文 abstract（SS search 或 arXiv XML）
-- LLM 生成中文摘要 + 与当前领域的关系分析
-- response: "📄 [论文名]\n\n[100字中文摘要]\n\n与 {topic} 的关系：[2-3句话]\n\n是否要将此论文加入知识图谱？"
-- action: "analysis_done"
-```
-
-**类型 D：其他 / 问答**
-```
-- LLM 基于已有 foundation + frontier 数据回答问题
-- response: "[LLM 回答，基于知识库数据]"
-- action: "answer"
-```
-
-#### C3：POST 回复到桥接服务器
-
-```bash
-curl -s -X POST http://localhost:7779/respond \
-  -H "Content-Type: application/json" \
-  -d '{"id": "<COMMAND_ID>", "response": "<RESPONSE_TEXT>", "action": "<ACTION>"}'
-```
-
-`id` 来自 C1 读取到的命令的 `id` 字段。
-
-### 完整示例：用户在 HTML 输入"把 Stable Diffusion 3 添加到知识图谱"
-
-```
-1. HTML → POST /command: {"message": "把 Stable Diffusion 3 添加到知识图谱", "topic": "Diffusion Models"}
-2. OpenClaw (Cron触发) → GET /queue → 看到 pending 命令
-3. SS search "Stable Diffusion 3 scaling rectified flow transformers" → 找到 paper
-4. 追加到 frontier 列表，更新 JSON，重新生成 HTML
-5. OpenClaw → POST /respond: {"id": "1", "response": "✅ 已将《Scaling Rectified Flow Transformers...》添加到前沿快照，请刷新页面", "action": "html_updated"}
-6. HTML poll → 收到 done → 显示回复 + "点击刷新页面"
-```
 
 ---
 
@@ -842,32 +564,9 @@ bash /home/node/.openclaw/workspace/skills/arxiv-watcher/scripts/search_arxiv.sh
 
 ### U3：追加到已有 JSON 并重新生成
 
-```python
-import json
-from pathlib import Path
-from datetime import datetime
-
-# 读取已有数据
-data_path = "/home/node/.openclaw/workspace/output/fp_data_{TOPIC}.json"
-data = json.loads(Path(data_path).read_text())
-
-# 追加新内容（不覆盖已有数据）
-new_updates = [
-  {"date": "2026-03-10", "title": "...", "url": "...", "summary": "...", "source": "arXiv"},
-  # ...
-]
-data.setdefault("latest_updates", [])
-data["latest_updates"] = new_updates + data["latest_updates"]  # 新的排前面
-
-# 记录更新时间
-data["last_updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M")
-
-# 写回 JSON
-Path(data_path).write_text(json.dumps(data, ensure_ascii=False, indent=2))
-
-# 重新生成 HTML
-# python3 generate_report.py --data /home/node/.openclaw/workspace/output/fp_data_{TOPIC}.json --output /home/node/.openclaw/workspace/output/FrontierPilot_{TOPIC}.html
-```
+1. 读取已有 `fp_data_{TOPIC}.json`
+2. 将 U2 筛选出的新论文 prepend 到 `latest_updates` 数组（新的排前面），更新 `last_updated_at` 为当前时间
+3. 写回 JSON 文件，然后重新执行 `generate_report.py --data ... --output ...` 生成 HTML
 
 ### U4：向用户确认
 
@@ -890,19 +589,13 @@ Path(data_path).write_text(json.dumps(data, ensure_ascii=False, indent=2))
 |------|-----------------|
 | **SS 按引用量搜索（Step 1A）** | `python3 /home/node/.openclaw/workspace/skills/semantic-scholar/scripts/semantic_scholar.py search --query "<query>" --sort-by citations --limit 30` |
 | **SS 按年份搜索（Step 2A）** | `python3 /home/node/.openclaw/workspace/skills/semantic-scholar/scripts/semantic_scholar.py search --query "<query>" --sort-by year --year-after 2022 --limit 25` |
-| **SS 真实引用边（Step 1B）** | `python3 /home/node/.openclaw/workspace/skills/semantic-scholar/scripts/semantic_scholar.py references --paper-id <SS_ID> --limit 20` |
-| **SS 论文详情含引用边** | `python3 /home/node/.openclaw/workspace/skills/semantic-scholar/scripts/semantic_scholar.py paper --paper-id <SS_ID> --include-references` |
+| **SS 论文详情 + 引用边（Step 1B）** | `python3 /home/node/.openclaw/workspace/skills/semantic-scholar/scripts/semantic_scholar.py paper --paper-id <SS_ID> --include-references` |
 | SS 作者查询（Step 3C） | `python3 /home/node/.openclaw/workspace/skills/semantic-scholar/scripts/semantic_scholar.py author --name "<NAME>"` |
 | arXiv 搜索（Step 1C 仅90天内） | `bash /home/node/.openclaw/workspace/skills/arxiv-watcher/scripts/search_arxiv.sh "<query>" <count>` |
 | OpenReview 论文搜索（Step 2B × 6） | `python3 /home/node/.openclaw/workspace/skills/openreview-explorer/scripts/search_papers.py --venue {ICLR\|NeurIPS\|ICML} --year {2023\|2024} --limit 50` |
 | OpenReview 获取 reviews（Step 2D） | `python3 /home/node/.openclaw/workspace/skills/openreview-explorer/scripts/get_reviews.py --forum-id <id> --venue <VENUE> --year <YEAR>` |
-| GitHub 搜索 | `node /home/node/.openclaw/workspace/skills/github-search/scripts/github-search.mjs "<query>" --min-stars 100 --limit 8` |
-| Bilibili 搜索 | `agent-reach bilibili search "<query>"` |
-| 微信公众号搜索 | `agent-reach wechat search "<query>"` |
-| 网页抓取 | `agent-reach web fetch "<url>"` |
-| 全网语义搜索 | `agent-reach exa search "<query>"` |
-
-详细的 agent-reach 命令参考见：`agent-reach-guide.md`（同目录）
+| GitHub 搜索（Step 3A） | `node /home/node/.openclaw/workspace/skills/github-search/scripts/github-search.mjs "<query>" --min-stars 100 --limit 8` |
+| Bilibili + 微信搜索（Step 3B） | `python3 /home/node/.openclaw/workspace/skills/frontierPilot/scripts/search_social.py --topic "<query>" --topic-zh "<中文>" 2>/dev/null` |
 
 ---
 
@@ -912,9 +605,7 @@ Path(data_path).write_text(json.dumps(data, ensure_ascii=False, indent=2))
 
 2. **OpenReview 登录**：环境变量已预配置，脚本自动登录。若 get_reviews.py 返回空列表，可能该论文尚无公开 reviews，跳过并注明。
 
-3. **arXiv 定位变更**：arXiv 现在仅作为预印本补充（Step 1C），只保留最近 90 天内的结果。奠基论文搜索已改由 Semantic Scholar `--sort-by citations` 承担（精准且无需 LLM 猜测年份/引用量）。
-
-4. **执行顺序**：Step 1A/1B/1C + 轨道三可同步进行。Step 2B（OR 6次搜索）可并行。Step 2C 需 2A+2B 完成后执行，Step 2D 需 2C 完成后执行。Step 2.5（流派识别）需三轨完成后执行。Step 4.5（Field Overview）需三轨 + 2.5 完成后执行。
+3. **执行顺序**：Step 1A/1B/1C + 轨道三可同步进行。Step 2B（OR 6次搜索）可并行。Step 2C 需 2A+2B 完成后执行，Step 2D 需 2C 完成后执行。Step 2.5（流派识别）需三轨完成后执行。Step 4.5（Field Overview）需三轨 + 2.5 完成后执行。
 
 5. **资源保存**：执行完成后，将阅读清单保存到 `memory/RESEARCH_LOG.md`，格式与 arxiv-watcher 的日志格式一致。
 
