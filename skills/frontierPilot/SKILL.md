@@ -7,7 +7,11 @@ description: Use when the user wants to explore a research topic/field (0→entr
 
 ## Preconditions
 
-- Optional but recommended: `SS_API_KEY` (avoids rate limiting).
+- Recommended: `SS_API_KEY` (avoids rate limiting + exec 30s timeout failures).
+- **If `SS_API_KEY` is NOT set (degraded mode):**
+  - Use smaller SS queries: `search --limit 15` (not 30).
+  - Fetch real citation edges for fewer papers: run `paper --include-references` only for **top 3–4** foundations (not 6).
+  - If you see `[SS] Rate limited` / HTTP 429, **stop and wait ~5 minutes** before retrying (don’t loop inside a 30s exec window).
 - OpenReview works anonymously; credentials improve access/throughput when needed.
 - 参考文档（按需读取，勿提前加载）：`references/data-schema.md`（JSON 字段）、`references/prompts.md`（LLM 提示词）、`references/openreview-venues.md`（venue 选择规则）、`references/runbook.md`（故障排查）
 
@@ -82,9 +86,7 @@ description: Use when the user wants to explore a research topic/field (0→entr
 
 ### 轨道一：Foundation Track — 基础知识 Roadmap
 
-**目标**：找出该方向的奠基性工作，获取真实引用边，构建演进时间线。
-
-**核心改进**：不再用 arXiv（按提交时间降序，奠基论文被埋在后几十条）。改用 Semantic Scholar 按引用量排序——高引用 = 奠基论文，精准且无需 LLM 猜测。
+目标：确定奠基论文（foundation）+ 真实引用边（graph_mermaid）。
 
 #### Step 1A：Semantic Scholar 引用量排序搜索（主力）
 
@@ -93,33 +95,27 @@ python3 /home/node/.openclaw/workspace/skills/semantic-scholar/scripts/semantic_
   search --query "<TOPIC_ENGLISH_KEYWORDS>" --sort-by citations --limit 30
 ```
 
-返回按引用量降序排列的论文列表。每篇包含：`paperId`、`title`、`year`、`citationCount`、`venue`、`authors`、`abstract`。
-
-**前 8-10 篇即为奠基论文**（无需 LLM 筛选引用量高低，数字直接说明）。从中选取 6-8 篇时间跨度合理的论文作为 foundation。
+从结果中选取 6–8 篇作为 `foundation`（优先覆盖时间跨度）。
 
 #### Step 1B：获取真实引用边（构建 graph_mermaid 用）
 
-对前 6 篇奠基论文，用 `paper --include-references` 获取每篇论文及其前 10 条引用：
+对前 3 篇奠基论文，用 `paper --include-references` 获取每篇论文及其前 10 条引用：
 
 ```bash
-# 对每篇奠基论文执行一次（共 6 次，逐一执行）
+# 对每篇奠基论文执行一次（共 3 次，逐一执行）
 python3 /home/node/.openclaw/workspace/skills/semantic-scholar/scripts/semantic_scholar.py \
   paper --paper-id <SS_PAPER_ID_1> --include-references
 
 python3 /home/node/.openclaw/workspace/skills/semantic-scholar/scripts/semantic_scholar.py \
   paper --paper-id <SS_PAPER_ID_2> --include-references
 
-# ... 对其余 4 篇重复
+# ... 对其余 1 篇重复
 ```
-
-返回结构包含 `references[]`，每条引用有 `paperId`、`title`、`year`。
 
 > **注意**：不要用 `references` 子命令——其嵌套字段在 SS API 中存在兼容性问题。
 > `paper --include-references` 返回的 10 条引用对于奠基论文之间的交叉引用提取已足够。
 
-**目的**：得到真实的"A引用了B"关系，用于在 graph_mermaid 中画真实引用边（`A --> B`），而非 LLM 编造的线性链。
-
-跨越范围：只取奠基论文集合内部的相互引用关系（约 5-10 条真实边），忽略指向集合外部论文的引用。
+只提取 foundation 集合内部的相互引用边，写入 `graph_mermaid`（不可编造）。
 
 #### Step 1C：arXiv 最近 90 天预印本补充（可选，次要）
 
@@ -127,7 +123,7 @@ python3 /home/node/.openclaw/workspace/skills/semantic-scholar/scripts/semantic_
 bash /home/node/.openclaw/workspace/skills/arxiv-watcher/scripts/search_arxiv.sh "<TOPIC_ENGLISH_KEYWORDS>" 20
 ```
 
-从返回结果中**只取 `<published>` 在最近 90 天内的论文**（其余全部丢弃）。通常补充 0-2 篇 Semantic Scholar 尚未收录的最新预印本。若 Step 1A 已覆盖最新工作，此步骤可跳过。
+只保留 `<published>` 在最近 90 天内的论文（可为 0 篇）。
 
 **轨道一输出**：写入 JSON 的 `foundation` 数组（每项含 year/title/authors/description/problem_solved/problem_left/url/is_key/citation_count），并在 chat 中简要汇报演进逻辑和真实引用边（来自 Step 1B）。
 
@@ -135,13 +131,11 @@ bash /home/node/.openclaw/workspace/skills/arxiv-watcher/scripts/search_arxiv.sh
 
 ### 轨道二：Frontier Track — 前沿论文分析
 
-**目标**：覆盖 5-10 篇高质量前沿论文，尽可能附带同行评审数据。
+目标：写入 `frontier`（优先带 OpenReview reviews），并扩展阅读清单（reviewer related work）。
 
 ---
 
 #### Step 2.0：Topic 类型判断（决定后续路径）
-
-**在执行任何搜索前**，先做显式分类，并将结果输出到后续步骤。
 
 **分类方法**：对以下三个问题各打分（0/1），合计 ≥ 2 分判为系统类，否则为 ML/AI 类：
 
@@ -172,7 +166,7 @@ python3 /home/node/.openclaw/workspace/skills/semantic-scholar/scripts/semantic_
   search --query "<TOPIC_ENGLISH_KEYWORDS>" --sort-by year --year-after 2021 --limit 25
 ```
 
-返回 2022 年至今的论文，按年份降序。LLM 从中选 8-10 篇最相关的作为前沿候选，记录其 `title`（用于下一步交叉匹配）。
+从结果中选出 8–10 篇候选，记录 `title` 用于 Step 2C 交叉匹配。
 
 #### Step 2B：OpenReview 多 venue-year 并行搜索
 
@@ -308,12 +302,7 @@ python3 /home/node/.openclaw/workspace/skills/semantic-scholar/scripts/semantic_
 
 ### Step 4.8：向用户汇报数据收集结果（生成 HTML 前）
 
-三轨数据 + Step 4.5 完成后，在 chat 中简要汇报，内容必须包含：
-1. 基础 Roadmap：N 篇奠基论文 + 一句话演进逻辑
-2. 前沿快照：N 篇论文 + 顶会来源 + reviewer 核心观点（每篇一句）
-3. 阅读清单：按奠基 → 前沿 → Reviewer 推荐 顺序列出
-4. 资源地图：GitHub（N 个）+ Bilibili（N 个）+ 微信（N 个）—— 三个来源必须全部出现
-5. 领域强组：N 位活跃研究者 + 机构
+三轨数据 + Step 4.5 完成后，在 chat 中按 checklist 简要汇报：Roadmap / Frontier / Reading list / Resources(GitHub+Bilibili+WeChat) / Top authors。
 
 然后继续执行 Step 5。
 
@@ -329,7 +318,7 @@ python3 /home/node/.openclaw/workspace/skills/semantic-scholar/scripts/semantic_
 ```bash
 python3 /home/node/.openclaw/workspace/skills/frontierPilot/scripts/write_fp_json.py \
   /home/node/.openclaw/workspace/output/fp_data_{TOPIC}.json << 'ENDOFJSON'
-（将完整 JSON 粘贴于此；字符串内的双引号须转义为 \"，避免多余尾逗号）
+（粘贴**纯 JSON**：不要手工转义引号、不要加注释；如上游输出为 ```json ... ```，脚本会自动去掉代码块包裹）
 ENDOFJSON
 ```
 delimiter 用 `ENDOFJSON`；若 JSON 内容含该字符串，改用 `__FP_JSON_END__`。
@@ -365,17 +354,6 @@ nohup python3 /home/node/.openclaw/workspace/skills/frontierPilot/scripts/chat_s
 ✅ {TOPIC} 成长型知识库已生成！
 
 🌐 **立即打开知识库：[http://localhost:7779/](http://localhost:7779/)**
-
-知识库包含：
-  📊 领域全景·专家视角导读（Field Overview）
-  🗺️ 领域知识图谱（Mermaid 可交互，含引用关系）
-  📚 基础 Roadmap（可视化时间线）
-  🔬 前沿论文 + 同行评审卡片
-  📋 阅读清单（分级排列）
-  🌐 GitHub / Bilibili / 微信资源地图
-  🏛️ 领域强组（Top 活跃研究者）
-  📰 最新动态（占位，更新时自动填充）
-  🤖 智能助手（与 OpenClaw 实时对话，可添加论文/更新知识库）
 
 🤖 智能助手已就绪，在浏览器中直接输入指令：
   · 把 [论文名] 添加到知识图谱
